@@ -15,6 +15,22 @@ int main()
 void test()
 {
     {
+        Timer timer("Subtraction");
+        BigUnsignedInt b("21784672876238762183782176387213213");
+        BigUnsignedInt c("327846728238762183782176387213213");
+        assert(b - c == BigUnsignedInt("21456826148000000000000000000000000"));
+    }
+    {
+        Timer timer("Division");
+        BigUnsignedInt b("200");
+        BigUnsignedInt c("3");
+        std::cout << b << "/" << c << " = " << (b / c) << ", should be 1935780845723285996099409" << '\n';
+//        Timer timer("Division");
+//        BigUnsignedInt b("423487632846328746328746686827164827648721");
+//        BigUnsignedInt c("218768376483287623");
+//        std::cout << b << "/" << c << " = " << (b / c) << ", should be 1935780845723285996099409" << '\n';
+    }
+    {
         Timer timer("Mudolo");
         BigUnsignedInt b("9945549994547342487362847632487678463291881729");
         for (size_t dummy = 0; dummy != 1000; ++dummy) {

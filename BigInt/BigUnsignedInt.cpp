@@ -15,6 +15,10 @@ BigUnsignedInt::BigUnsignedInt(size_t val)
     init(val);
 }
 
+BigUnsignedInt::BigUnsignedInt(std::vector<size_t> && digits) : m_digits(std::move(digits))
+{
+}
+
 void BigUnsignedInt::bubble(size_t startIndex)
 {
     assert(not m_digits.empty());
@@ -29,9 +33,9 @@ void BigUnsignedInt::bubble(size_t startIndex)
         }
     }
 
-    if (m_digits.back() >= s_base) {
+    if (mostSignificantDigit() >= s_base) {
         size_t continueIndex = digitCount() - 1ul;
-        m_digits.resize(digitCount() + std::log(m_digits.back()) / std::log(s_base) + 1ul);
+        m_digits.resize(digitCount() + std::log(mostSignificantDigit()) / std::log(s_base) + 1ul);
         bubble(continueIndex);
     }
     resizeToFit();
@@ -114,7 +118,7 @@ BigUnsignedInt & BigUnsignedInt::operator+=(const BigUnsignedInt & rhs)
 bool BigUnsignedInt::isCorrectlySized() const
 {
     assert(digitCount() > 0);
-    if (m_digits.back() == 0ul) {
+    if (mostSignificantDigit() == 0ul) {
         return digitCount() == 1; // Is the value zero
     }
 
@@ -191,7 +195,7 @@ BigUnsignedInt & BigUnsignedInt::operator*=(const BigUnsignedInt & rhs)
     std::swap(copy.m_digits, m_digits);
     auto rhsIt = rhs.m_digits.cbegin();
     for (size_t i = 0; i != rhs.digitCount(); ++i) {
-        shiftAdd(copy * *rhsIt, i);
+        shiftAdd(copy * (*rhsIt), i);
         ++rhsIt;
     }
     return *this;
@@ -203,15 +207,14 @@ BigUnsignedInt & BigUnsignedInt::shift(size_t shiftAmount)
     return *this;
 }
 
-BigUnsignedInt BigUnsignedInt::operator*(const size_t & rhs)
+BigUnsignedInt BigUnsignedInt::operator*(size_t rhs) const
 {
-    assert(rhs < s_base);
-    auto result = *this;
-    for (auto & it : result.m_digits) {
-        it *= rhs;
+    if (rhs == 0) {
+        return BigUnsignedInt(0);
     }
-    result.bubble(0);
-    return result;
+    auto copy = *this;
+    copy *= rhs;
+    return copy;
 }
 
 void BigUnsignedInt::square()
@@ -228,6 +231,7 @@ BigUnsignedInt::BigUnsignedInt(const std::string & val)
         *this *= 10;
         *this += *charIt - '0';
     }
+    bubble(0);
 }
 
 BigUnsignedInt & BigUnsignedInt::operator*=(const size_t rhs)
@@ -338,7 +342,98 @@ BigUnsignedInt & BigUnsignedInt::operator%=(size_t mod)
     return *this;
 }
 
-BigUnsignedInt BigUnsignedInt::operator/(size_t mod) const
+BigUnsignedInt subRoutine(const BigUnsignedInt & A, const BigUnsignedInt & B)
 {
-    return 0;
+    assert(B != 0);
+    if (A < B) {
+        return BigUnsignedInt(0);
+    }
+    const size_t n = B.digitCount();
+    assert(A.digitCount() <= n + 1);
+    assert(n > 0);
+    if (A >= B * BigUnsignedInt::s_base) {
+        return subRoutine(A - B * BigUnsignedInt::s_base, B);
+    }
+    size_t q;
+    if (A.digitCount() == n + 1) {
+        q = (BigUnsignedInt::s_base * A.mostSignificantDigit() + *(A.m_digits.rbegin() + 1)) / B.mostSignificantDigit();
+    } else {
+        q = (*(A.m_digits.rbegin() + 1)) / B.mostSignificantDigit();
+    }
+    if (q > BigUnsignedInt::s_base - 1) {
+        q = BigUnsignedInt::s_base - 1;
+    }
+    auto T = B * q;
+    if (T > A) {
+        --q;
+        T -= B;
+    }
+    if (T > A) {
+        --q;
+        T -= B;
+    }
+    return q;
+}
+
+BigUnsignedInt BigUnsignedInt::operator/(const BigUnsignedInt & divisor) const
+{
+
+
+
+
+
+    return BigUnsignedInt();
+}
+
+size_t BigUnsignedInt::mostSignificantDigit() const
+{
+    return m_digits.back();
+}
+
+BigUnsignedInt BigUnsignedInt::operator*(const BigUnsignedInt & rhs) const
+{
+    auto copy = *this;
+    copy *= rhs;
+    return copy;
+}
+
+BigUnsignedInt & BigUnsignedInt::operator-=(const BigUnsignedInt & rhs)
+{
+    assert(rhs <= *this);
+
+    auto thisIt = m_digits.rbegin() + (digitCount() - rhs.digitCount());
+    auto rhsIt  = rhs.m_digits.rbegin();
+
+    for (; thisIt != m_digits.rend(); ++thisIt, ++rhsIt) {
+        if (*thisIt >= *rhsIt) {
+            *thisIt -= *rhsIt;
+        } else {
+            assert(*(thisIt - 1ul) > 0);
+            *(thisIt - 1ul) -= 1ul;
+            *thisIt += s_base - *rhsIt;
+        }
+    }
+
+    return *this;
+}
+
+BigUnsignedInt BigUnsignedInt::operator-(const BigUnsignedInt & rhs) const
+{
+    auto copy = *this;
+    copy -= rhs;
+    return copy;
+}
+
+BigUnsignedInt BigUnsignedInt::operator+(size_t rhs) const
+{
+    auto copy = *this;
+    copy += rhs;
+    return copy;
+}
+
+BigUnsignedInt BigUnsignedInt::operator+(const BigUnsignedInt & rhs) const
+{
+    auto copy = *this;
+    copy += rhs;
+    return copy;
 }

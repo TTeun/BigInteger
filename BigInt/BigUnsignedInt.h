@@ -9,16 +9,15 @@
 
 class BigUnsignedInt {
 
-private:
+public:
     static const size_t s_base = std::sqrt(std::numeric_limits<size_t>::max()) - 1ul;
 
-    static constexpr bool baseIsEven()
-    {
-        return s_base % 2 == 0;
-    }
-
 public:
+    friend BigUnsignedInt subRoutine(const BigUnsignedInt & A, const BigUnsignedInt & B);
+
     BigUnsignedInt();
+
+    explicit BigUnsignedInt(std::vector<size_t> && digits);
 
     BigUnsignedInt(size_t val);
 
@@ -30,19 +29,29 @@ public:
 
     BigUnsignedInt & operator+=(const BigUnsignedInt & rhs);
 
+    BigUnsignedInt & operator-=(const BigUnsignedInt & rhs);
+
+    BigUnsignedInt operator-(const BigUnsignedInt & rhs) const;
+
     BigUnsignedInt & operator+=(size_t rhs);
 
     BigUnsignedInt & operator*=(const BigUnsignedInt & rhs);
 
     BigUnsignedInt & operator*=(size_t rhs);
 
-    BigUnsignedInt operator%(const BigUnsignedInt & mod) const;
+    BigUnsignedInt operator+(size_t rhs) const;
+
+    BigUnsignedInt operator+(const BigUnsignedInt & rhs) const;
+
+    BigUnsignedInt operator*(size_t rhs) const;
+
+    BigUnsignedInt operator*(const BigUnsignedInt & rhs) const;
 
     size_t operator%(size_t mod) const;
 
     BigUnsignedInt & operator%=(size_t mod);
 
-    BigUnsignedInt operator/(size_t dividend) const;
+    BigUnsignedInt operator/(const BigUnsignedInt & divisor) const;
 
     bool operator==(const BigUnsignedInt & rhs) const;
 
@@ -56,20 +65,19 @@ public:
 
     bool operator>=(const BigUnsignedInt & rhs) const;
 
+    size_t mostSignificantDigit() const;
+
     friend std::ostream & operator<<(std::ostream & os, const BigUnsignedInt & anInt);
 
     friend BigUnsignedInt power(const BigUnsignedInt & base, size_t exponent);
 
+    size_t digitCount() const;
 protected:
     void shiftAdd(const BigUnsignedInt & rhs, size_t shiftAmount);
 
     void square();
 
-    BigUnsignedInt operator*(const size_t & rhs);
-
     bool isCorrectlySized() const;
-
-    size_t digitCount() const;
 
     void resizeToFit();
 
