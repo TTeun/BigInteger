@@ -17,16 +17,20 @@ BigUnsignedInt::BigUnsignedInt(size_t val)
 
 BigUnsignedInt::BigUnsignedInt(std::vector<size_t> && digits) : m_digits(std::move(digits))
 {
+    if (m_digits.empty()) {
+        init(0);
+    }
+    bubble();
 }
 
 void BigUnsignedInt::bubble(size_t startIndex)
 {
     assert(not m_digits.empty());
     assert(startIndex < digitCount());
-    auto it   = m_digits.begin() + startIndex;
+    auto it   = rightToLeftBegin() + startIndex;
     auto next = it + 1;
 
-    for (; next != m_digits.end(); ++it, ++next) {
+    for (; next != rightToLeftEnd(); ++it, ++next) {
         if (*it >= s_base) {
             *next += *it / s_base;
             *it %= s_base;
@@ -44,7 +48,7 @@ void BigUnsignedInt::bubble(size_t startIndex)
 std::ostream & operator<<(std::ostream & os, const BigUnsignedInt & bigUnsignedInt)
 {
     os << "( ";
-    for (auto it = bigUnsignedInt.m_digits.rbegin(); it != bigUnsignedInt.m_digits.rend(); ++it) {
+    for (auto it = bigUnsignedInt.leftToRightConstBegin(); it != bigUnsignedInt.leftToRightConstEnd(); ++it) {
         os << *it << " ";
     }
     os << ")_" << BigUnsignedInt::s_base;
@@ -55,19 +59,14 @@ void BigUnsignedInt::init(size_t val)
 {
     static_assert(s_base <= std::numeric_limits<size_t>::max() / s_base,
                   "s_base^2 should not exceed the maximum size_t");
-    if (val < s_base) {
-        m_digits = {val};
-    } else if (val < s_base * s_base) {
-        m_digits = {val % s_base, val / s_base};
-    } else {
-        m_digits = {val % s_base, (val / s_base) % s_base, val / (s_base * s_base)};
-    }
+    m_digits = {val};
+    bubble(0);
 }
 
 bool BigUnsignedInt::operator==(const BigUnsignedInt & rhs) const
 {
-    assert(isCorrectlySized());
-    assert(rhs.isCorrectlySized());
+    assert(isWellFormed());
+    assert(rhs.isWellFormed());
 
     return m_digits == rhs.m_digits;
 }
@@ -79,16 +78,17 @@ bool BigUnsignedInt::operator!=(const BigUnsignedInt & rhs) const
 
 void BigUnsignedInt::resizeToFit()
 {
-    for (auto it = m_digits.crbegin(); it != m_digits.crend(); ++it) {
+    auto it = leftToRightConstBegin();
+    for (; it != leftToRightConstEnd(); ++it) {
         if (*it != 0ul) {
-            m_digits.resize(digitCount() - std::distance(m_digits.crbegin(), it));
             break;
         }
     }
+    m_digits.resize(digitCount() - std::distance(leftToRightConstBegin(), it));
 
     if (m_digits.empty()) {
         m_digits.resize(1);
-        *m_digits.begin() = 0ul;
+        *rightToLeftBegin() = 0ul;
     }
 }
 
@@ -107,8 +107,9 @@ BigUnsignedInt & BigUnsignedInt::operator+=(const BigUnsignedInt & rhs)
         m_digits.resize(rhs.digitCount());
     }
 
-    auto rhsIt = rhs.m_digits.cbegin();
-    for (auto thisIt = m_digits.begin(); rhsIt != rhs.m_digits.end(); ++thisIt, ++rhsIt) {
+    auto rhsIt  = rhs.rightToLeftConstBegin();
+    auto thisIt = rightToLeftBegin();
+    for (; rhsIt != rhs.rightToLeftConstEnd(); ++thisIt, ++rhsIt) {
         *thisIt += *rhsIt;
     }
     bubble(0);
@@ -127,7 +128,7 @@ bool BigUnsignedInt::isCorrectlySized() const
 
 bool BigUnsignedInt::operator<(const BigUnsignedInt & rhs) const
 {
-    assert(isCorrectlySized() && rhs.isCorrectlySized());
+    assert(isWellFormed() && rhs.isCorrectlySized());
 
     if (digitCount() != rhs.digitCount()) {
         return digitCount() < rhs.digitCount();
@@ -136,10 +137,10 @@ bool BigUnsignedInt::operator<(const BigUnsignedInt & rhs) const
         return m_digits.front() < m_digits.front();
     }
 
-    auto thisIt = m_digits.crbegin();
-    auto rhsIt  = rhs.m_digits.crbegin();
+    auto thisIt = leftToRightConstBegin();
+    auto rhsIt  = rhs.leftToRightConstBegin();
 
-    for (; thisIt != m_digits.crend(); ++thisIt, ++rhsIt) {
+    for (; thisIt != leftToRightConstEnd(); ++thisIt, ++rhsIt) {
         if (*thisIt != *rhsIt) {
             return *thisIt < *rhsIt;
         }
@@ -154,7 +155,7 @@ bool BigUnsignedInt::operator>(const BigUnsignedInt & rhs) const
 
 bool BigUnsignedInt::operator<=(const BigUnsignedInt & rhs) const
 {
-    assert(isCorrectlySized() && rhs.isCorrectlySized());
+    assert(isWellFormed() && rhs.isCorrectlySized());
 
     if (digitCount() != rhs.digitCount()) {
         return digitCount() < rhs.digitCount();
@@ -163,10 +164,10 @@ bool BigUnsignedInt::operator<=(const BigUnsignedInt & rhs) const
         return m_digits.front() <= m_digits.front();
     }
 
-    auto thisIt = m_digits.crbegin();
-    auto rhsIt  = rhs.m_digits.crbegin();
+    auto thisIt = leftToRightConstBegin();
+    auto rhsIt  = rhs.leftToRightConstBegin();
 
-    for (; thisIt != m_digits.crend(); ++thisIt, ++rhsIt) {
+    for (; thisIt != leftToRightConstEnd(); ++thisIt, ++rhsIt) {
         if (*thisIt != *rhsIt) {
             return *thisIt <= *rhsIt;
         }
@@ -193,7 +194,7 @@ BigUnsignedInt & BigUnsignedInt::operator*=(const BigUnsignedInt & rhs)
 
     BigUnsignedInt copy = 0ul;
     std::swap(copy.m_digits, m_digits);
-    auto rhsIt = rhs.m_digits.cbegin();
+    auto rhsIt = rhs.rightToLeftConstBegin();
     for (size_t i = 0; i != rhs.digitCount(); ++i) {
         shiftAdd(copy * (*rhsIt), i);
         ++rhsIt;
@@ -203,7 +204,7 @@ BigUnsignedInt & BigUnsignedInt::operator*=(const BigUnsignedInt & rhs)
 
 BigUnsignedInt & BigUnsignedInt::shift(size_t shiftAmount)
 {
-    m_digits.insert(m_digits.begin(), shiftAmount, 0);
+    m_digits.insert(rightToLeftBegin(), shiftAmount, 0);
     return *this;
 }
 
@@ -249,8 +250,9 @@ BigUnsignedInt & BigUnsignedInt::operator*=(const size_t rhs)
 
 BigUnsignedInt & BigUnsignedInt::operator+=(size_t rhs)
 {
-    if (rhs <= std::numeric_limits<size_t>::max() - m_digits.front()) {
-        *m_digits.begin() += rhs;
+    static const size_t additionRoom = std::numeric_limits<size_t>::max() - s_base;
+    if (rhs <= additionRoom) {
+        *rightToLeftBegin() += rhs;
         bubble();
         return *this;
     } else {
@@ -284,8 +286,8 @@ void BigUnsignedInt::shiftAdd(const BigUnsignedInt & rhs, size_t shiftAmount)
         m_digits.resize(rhs.digitCount() + shiftAmount);
     }
 
-    auto thisIt = m_digits.begin() + shiftAmount;
-    auto rhsIt  = rhs.m_digits.cbegin();
+    auto thisIt = rightToLeftBegin() + shiftAmount;
+    auto rhsIt  = rhs.rightToLeftConstBegin();
 
     for (; rhsIt != rhs.m_digits.end(); ++thisIt, ++rhsIt) {
         *thisIt += *rhsIt;
@@ -296,25 +298,25 @@ void BigUnsignedInt::shiftAdd(const BigUnsignedInt & rhs, size_t shiftAmount)
 BigUnsignedInt & BigUnsignedInt::operator=(size_t rhs)
 {
     init(rhs);
+    return *this;
 }
 
-static size_t modPower(size_t base, size_t exponent, size_t mod)
+template <typename T>
+static size_t modPower(T base, T exponent, size_t mod)
 {
     if (exponent == 0ul) {
         return 1;
     } else if (exponent == 1ul) {
         return base % mod;
     }
-    size_t aux(1);
-    size_t copy(base);
+    T aux(1);
+    T copy(base);
     while (exponent > 1ul) {
-        if (exponent % 2ul == 0ul) {
-            exponent /= 2ul;
-        } else {
+        if (exponent % 2ul != 0ul) {
             aux *= copy;
             aux %= mod;
-            exponent = (exponent - 1) / 2ul;
         }
+        exponent /= 2ul;
         copy *= copy;
         copy %= mod;
     }
@@ -324,7 +326,7 @@ static size_t modPower(size_t base, size_t exponent, size_t mod)
 
 size_t BigUnsignedInt::operator%(size_t mod) const
 {
-    if (mod >= s_base) {
+    if (mod >= std::numeric_limits<size_t>::max() / mod) {
         std::cout << "large modulo moet nog\n";
         return 0;
     }
@@ -342,47 +344,54 @@ BigUnsignedInt & BigUnsignedInt::operator%=(size_t mod)
     return *this;
 }
 
-BigUnsignedInt subRoutine(const BigUnsignedInt & A, const BigUnsignedInt & B)
+std::pair<size_t, BigUnsignedInt> divisionSubRoutine(const BigUnsignedInt & dividend, const BigUnsignedInt & divisor)
 {
-    assert(B != 0);
-    if (A < B) {
-        return BigUnsignedInt(0);
-    }
-    const size_t n = B.digitCount();
-    assert(A.digitCount() <= n + 1);
-    assert(n > 0);
-    if (A >= B * BigUnsignedInt::s_base) {
-        return subRoutine(A - B * BigUnsignedInt::s_base, B);
+    assert(divisor != 0);
+    assert(divisor.mostSignificantDigit() * 2 >= BigUnsignedInt::s_base);
+    const size_t n = divisor.digitCount();
+    assert(dividend.digitCount() <= n + 1);
+    if (dividend >= divisor * BigUnsignedInt::s_base) {
+        auto result = divisionSubRoutine(dividend - divisor * BigUnsignedInt::s_base, divisor);
+        result.first += BigUnsignedInt::s_base;
+        return result;
     }
     size_t q;
-    if (A.digitCount() == n + 1) {
-        q = (BigUnsignedInt::s_base * A.mostSignificantDigit() + *(A.m_digits.rbegin() + 1)) / B.mostSignificantDigit();
+    if (dividend.digitCount() == n + 1) {
+        q = (BigUnsignedInt::s_base * dividend.mostSignificantDigit() + dividend.secondMostSignificantDigit()) /
+            divisor.mostSignificantDigit();
     } else {
-        q = (*(A.m_digits.rbegin() + 1)) / B.mostSignificantDigit();
+        q = divisor.mostSignificantDigit() / divisor.mostSignificantDigit();
     }
-    if (q > BigUnsignedInt::s_base - 1) {
-        q = BigUnsignedInt::s_base - 1;
-    }
-    auto T = B * q;
-    if (T > A) {
+    q                = std::min(q, BigUnsignedInt::s_base - 1ul);
+    BigUnsignedInt T = divisor * q;
+    while (T > dividend) {
         --q;
-        T -= B;
+        T -= divisor;
     }
-    if (T > A) {
-        --q;
-        T -= B;
-    }
-    return q;
+    return {q, dividend - T};
 }
 
 BigUnsignedInt BigUnsignedInt::operator/(const BigUnsignedInt & divisor) const
 {
+    if (&divisor == this) {
+        return BigUnsignedInt(0);
+    }
+    if (divisor == 1ul) {
+        return BigUnsignedInt(*this);
+    }
+    if (*this < divisor) {
+        return 0;
+    }
+    const size_t m = this->digitCount();
+    const size_t n = divisor.digitCount();
 
-
-
-
-
-    return BigUnsignedInt();
+    if (m < n) {
+        return 0ul;
+    }
+    if (m == 1) {
+        return mostSignificantDigit() / divisor.mostSignificantDigit();
+    }
+    return longDivision(*this, divisor).first;
 }
 
 size_t BigUnsignedInt::mostSignificantDigit() const
@@ -400,20 +409,30 @@ BigUnsignedInt BigUnsignedInt::operator*(const BigUnsignedInt & rhs) const
 BigUnsignedInt & BigUnsignedInt::operator-=(const BigUnsignedInt & rhs)
 {
     assert(rhs <= *this);
-
-    auto thisIt = m_digits.rbegin() + (digitCount() - rhs.digitCount());
-    auto rhsIt  = rhs.m_digits.rbegin();
-
-    for (; thisIt != m_digits.rend(); ++thisIt, ++rhsIt) {
-        if (*thisIt >= *rhsIt) {
-            *thisIt -= *rhsIt;
+    auto rhsIt           = rhs.rightToLeftConstBegin();
+    auto thisIt          = rightToLeftBegin();
+    unsigned short carry = 0ul;
+    for (; rhsIt != rhs.rightToLeftConstEnd(); ++thisIt, ++rhsIt) {
+        if (*thisIt >= *rhsIt + carry) {
+            *thisIt -= *rhsIt + carry;
+            carry = 0;
         } else {
-            assert(*(thisIt - 1ul) > 0);
-            *(thisIt - 1ul) -= 1ul;
-            *thisIt += s_base - *rhsIt;
+            *thisIt += s_base;
+            *thisIt -= *rhsIt + carry;
+            carry = 1ul;
         }
     }
-
+    while (carry != 0ul) {
+        assert(thisIt != rightToLeftEnd());
+        if (*thisIt > 0) {
+            --*thisIt;
+            break;
+        } else {
+            *thisIt = s_base - 1ul;
+        }
+        ++thisIt;
+    }
+    resizeToFit();
     return *this;
 }
 
@@ -436,4 +455,116 @@ BigUnsignedInt BigUnsignedInt::operator+(const BigUnsignedInt & rhs) const
     auto copy = *this;
     copy += rhs;
     return copy;
+}
+
+size_t BigUnsignedInt::secondMostSignificantDigit() const
+{
+    assert(digitCount() > 1);
+    return *(m_digits.rbegin() + 1);
+}
+
+static size_t ceilingIntegerDivision(size_t a, size_t b)
+{
+    return (a + b - 1) / b;
+}
+
+std::pair<BigUnsignedInt, BigUnsignedInt> longDivision(const BigUnsignedInt & dividend, const BigUnsignedInt & divisor)
+{
+    if (dividend < divisor) {
+        return {0, dividend};
+    }
+    const size_t t = ceilingIntegerDivision(BigUnsignedInt::s_base, 2ul * divisor.mostSignificantDigit());
+    if (t > 1) {
+        return longDivisionAfterAdjustingDivisor(dividend * t, divisor * t);
+    } else {
+        return longDivisionAfterAdjustingDivisor(dividend, divisor);
+    }
+}
+
+std::pair<BigUnsignedInt, BigUnsignedInt> longDivisionAfterAdjustingDivisor(const BigUnsignedInt & dividend,
+                                                                            const BigUnsignedInt & divisor)
+{
+    assert(divisor <= dividend);
+    assert(divisor.mostSignificantDigit() * 2 > BigUnsignedInt::s_base);
+
+    const size_t m = dividend.digitCount();
+    const size_t n = divisor.digitCount();
+
+    if (m <= n + 1) {
+        return divisionSubRoutine(dividend, divisor);
+    }
+    const auto prefix = dividend.prefix(n + 1);
+    const auto suffix = dividend.suffix(m - n - 1ul);
+
+    auto quotientRemainder = divisionSubRoutine(prefix, divisor);
+
+    auto quotient = BigUnsignedInt(quotientRemainder.first).shift(m - n - 1);
+
+    const auto rec = longDivisionAfterAdjustingDivisor(suffix + quotientRemainder.second.shift(m - n - 1), divisor);
+    quotient += rec.first;
+    return {quotient, rec.second};
+}
+
+BigUnsignedInt BigUnsignedInt::prefix(size_t length) const
+{
+    assert(length <= m_digits.size());
+    return BigUnsignedInt(std::vector<size_t>(m_digits.end() - length, m_digits.end()));
+}
+
+BigUnsignedInt BigUnsignedInt::suffix(size_t length) const
+{
+    assert(length <= m_digits.size());
+    return BigUnsignedInt(std::vector<size_t>(rightToLeftConstBegin(), rightToLeftConstBegin() + length));
+}
+
+BigUnsignedInt BigUnsignedInt::createFromMostSignificantDigit(size_t digit, size_t position)
+{
+    std::vector<size_t> digits(position, 0);
+    digits[position] = digit;
+    return BigUnsignedInt(std::move(digits));
+}
+
+std::vector<size_t>::reverse_iterator BigUnsignedInt::leftToRightBegin()
+{
+    return m_digits.rbegin();
+}
+std::vector<size_t>::reverse_iterator BigUnsignedInt::leftToRightEnd()
+{
+    return m_digits.rend();
+}
+std::vector<size_t>::iterator BigUnsignedInt::rightToLeftBegin()
+{
+    return m_digits.begin();
+}
+std::vector<size_t>::iterator BigUnsignedInt::rightToLeftEnd()
+{
+    return m_digits.end();
+}
+std::vector<size_t>::const_reverse_iterator BigUnsignedInt::leftToRightConstBegin() const
+{
+    return m_digits.crbegin();
+}
+std::vector<size_t>::const_reverse_iterator BigUnsignedInt::leftToRightConstEnd() const
+{
+    return m_digits.crend();
+}
+std::vector<size_t>::const_iterator BigUnsignedInt::rightToLeftConstBegin() const
+{
+    return m_digits.cbegin();
+}
+std::vector<size_t>::const_iterator BigUnsignedInt::rightToLeftConstEnd() const
+{
+    return m_digits.cend();
+}
+bool BigUnsignedInt::isWellFormed() const
+{
+    if (not isCorrectlySized()) {
+        return false;
+    }
+    for (const auto it : m_digits) {
+        if (it >= s_base) {
+            return false;
+        }
+    }
+    return true;
 }
