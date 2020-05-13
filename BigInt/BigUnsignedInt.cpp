@@ -4,6 +4,50 @@
 #include <cassert>
 #include <iostream>
 
+static void subtractViaIterators(std::vector<size_t>::iterator thisIt, const std::vector<size_t>::iterator thisEnd,
+                                 std::vector<size_t>::const_iterator       rhsIt,
+                                 const std::vector<size_t>::const_iterator rhsEnd) {
+    unsigned short carry = 0ul;
+    for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
+        if (*thisIt >= *rhsIt + carry) {
+            *thisIt -= *rhsIt + carry;
+            carry = 0;
+        } else {
+            *thisIt += DigitVector::s_base;
+            *thisIt -= *rhsIt + carry;
+            carry = 1ul;
+        }
+    }
+    if (carry != 0ul) {
+        while (true) {
+            assert(thisIt != thisEnd);
+            if (*thisIt > 0) {
+                --*thisIt;
+                break;
+            }
+            *thisIt = DigitVector::s_base - 1ul;
+            ++thisIt;
+        }
+    }
+}
+
+static bool lessThanShiftedRhsViaIterators(std::vector<size_t>::const_reverse_iterator        thisIt,
+                                           const std::vector<size_t>::const_reverse_iterator &thisEnd,
+                                           std::vector<size_t>::const_reverse_iterator        rhsIt,
+                                           const std::vector<size_t>::const_reverse_iterator &rhsEnd,
+                                           const size_t                                       trailingZeroesOfRhs) {
+    if (std::distance(thisIt, thisEnd) != std::distance(rhsIt, rhsEnd) + trailingZeroesOfRhs) {
+        return std::distance(thisIt, thisEnd) < std::distance(rhsIt, rhsEnd) + trailingZeroesOfRhs;
+    }
+
+    for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
+        if (*thisIt != *rhsIt) {
+            return *thisIt < *rhsIt;
+        }
+    }
+    return false;
+}
+
 BigUnsignedInt::BigUnsignedInt() {
     init(0);
 }
@@ -12,8 +56,7 @@ BigUnsignedInt::BigUnsignedInt(size_t val) {
     init(val);
 }
 
-BigUnsignedInt::BigUnsignedInt(std::vector<size_t> &&digits)
-    : DigitVector(std::move(digits)) {
+BigUnsignedInt::BigUnsignedInt(std::vector<size_t> &&digits) : DigitVector(std::move(digits)) {
     if (m_digits.empty()) {
         init(0);
     }
@@ -27,6 +70,9 @@ BigUnsignedInt::BigUnsignedInt(const std::string &val) {
         *this += charIt - '0';
     }
     bubble(0);
+}
+
+void bubbleViaIteratorsWithoutResize(std::vector<size_t>::iterator it, const std::vector<size_t>::iterator endIt) {
 }
 
 void BigUnsignedInt::bubble(size_t startIndex) {
@@ -44,19 +90,15 @@ void BigUnsignedInt::bubble(size_t startIndex) {
 
     if (mostSignificantDigit() >= s_base) {
         const size_t continueIndex = digitCount() - 1ul;
-        m_digits.resize(static_cast<size_t>(digitCount() +
-                                            std::log(mostSignificantDigit()) /
-                                                std::log(s_base)));
+        m_digits.resize(1ul + static_cast<size_t>(digitCount() + std::log(mostSignificantDigit()) / std::log(s_base)));
         bubble(continueIndex);
     }
     resizeToFit();
 }
 
-std::ostream &operator<<(std::ostream &        os,
-                         const BigUnsignedInt &bigUnsignedInt) {
+std::ostream &operator<<(std::ostream &os, const BigUnsignedInt &bigUnsignedInt) {
     os << "( ";
-    for (auto it = bigUnsignedInt.leftToRightConstBegin();
-         it != bigUnsignedInt.leftToRightConstEnd(); ++it) {
+    for (auto it = bigUnsignedInt.leftToRightConstBegin(); it != bigUnsignedInt.leftToRightConstEnd(); ++it) {
         os << *it << " ";
     }
     os << ")_" << BigUnsignedInt::s_base;
@@ -102,9 +144,7 @@ BigUnsignedInt &BigUnsignedInt::operator=(const BigUnsignedInt &rhs) {
 }
 
 BigUnsignedInt &BigUnsignedInt::operator+=(const BigUnsignedInt &rhs) {
-    if (rhs.digitCount() > digitCount()) {
-        m_digits.resize(rhs.digitCount());
-    }
+    m_digits.resize(std::max(digitCount(), rhs.digitCount()) + 1ul);
 
     auto           thisIt = rightToLeftBegin();
     auto           rhsIt  = rhs.rightToLeftConstBegin();
@@ -119,39 +159,60 @@ BigUnsignedInt &BigUnsignedInt::operator+=(const BigUnsignedInt &rhs) {
         }
     }
     if (carry == 1ul) {
-        if (thisIt == rightToLeftEnd()) {
-            m_digits.push_back(1ul);
-        } else {
-            *thisIt += 1;
-            bubble(static_cast<size_t>(
-                std::abs(std::distance(rightToLeftBegin(), thisIt))));
-        }
+        //        if (thisIt == rightToLeftEnd()) {
+        //            m_digits.push_back(1ul);
+        //        } else {
+        *thisIt += 1;
+        //        bubble(static_cast<size_t>(
+        //            std::abs(std::distance(rightToLeftBegin(), thisIt))));
+        bubble(0ul);
+        //        }
+    }
+    if (m_digits.back() == 0ul) {
+        m_digits.resize(m_digits.size() - 1ul);
     }
     return *this;
 }
 
-bool BigUnsignedInt::operator<(const BigUnsignedInt &rhs) const {
-    assert(isWellFormed() && rhs.isWellFormed());
+bool lessThanViaIterators(std::vector<size_t>::const_reverse_iterator        thisIt,
+                          const std::vector<size_t>::const_reverse_iterator &thisEnd,
+                          std::vector<size_t>::const_reverse_iterator        rhsIt,
+                          const std::vector<size_t>::const_reverse_iterator &rhsEnd) {
+    return lessThanShiftedRhsViaIterators(thisIt, thisEnd, rhsIt, rhsEnd, 0ul);
+}
 
-    if (digitCount() != rhs.digitCount()) {
-        return digitCount() < rhs.digitCount();
+bool greaterThanViaIterators(std::vector<size_t>::const_reverse_iterator        thisIt,
+                             const std::vector<size_t>::const_reverse_iterator &thisEnd,
+                             std::vector<size_t>::const_reverse_iterator        rhsIt,
+                             const std::vector<size_t>::const_reverse_iterator &rhsEnd) {
+    if (std::distance(thisIt, thisEnd) != std::distance(rhsIt, rhsEnd)) {
+        return std::distance(thisIt, thisEnd) > std::distance(rhsIt, rhsEnd);
     }
-    if (digitCount() == 1) {
-        return mostSignificantDigit() < rhs.mostSignificantDigit();
-    }
-    auto thisIt = leftToRightConstBegin();
-    auto rhsIt  = rhs.leftToRightConstBegin();
 
-    for (; thisIt != leftToRightConstEnd(); ++thisIt, ++rhsIt) {
+    for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
         if (*thisIt != *rhsIt) {
-            return *thisIt < *rhsIt;
+            return *thisIt > *rhsIt;
         }
     }
     return false;
 }
 
+bool BigUnsignedInt::operator<(const BigUnsignedInt &rhs) const {
+    assert(isWellFormed() && rhs.isWellFormed());
+
+    return lessThanViaIterators(leftToRightConstBegin(), leftToRightConstEnd(), rhs.leftToRightConstBegin(),
+                                rhs.leftToRightConstEnd());
+}
+
 bool BigUnsignedInt::operator>(const BigUnsignedInt &rhs) const {
     return rhs < *this;
+}
+
+bool greaterOrEqualViaIterators(std::vector<size_t>::const_reverse_iterator       thisIt,
+                                const std::vector<size_t>::const_reverse_iterator thisEnd,
+                                std::vector<size_t>::const_reverse_iterator       rhsIt,
+                                const std::vector<size_t>::const_reverse_iterator rhsEnd) {
+    return !(lessThanViaIterators(thisIt, thisEnd, rhsIt, rhsEnd));
 }
 
 bool BigUnsignedInt::operator<=(const BigUnsignedInt &rhs) const {
@@ -180,10 +241,12 @@ BigUnsignedInt &BigUnsignedInt::operator*=(const BigUnsignedInt &rhs) {
         square();
         return *this;
     }
-    BigUnsignedInt copy  = *this * rhs.leastSignificantDigit();
-    auto           rhsIt = rhs.rightToLeftConstBegin() + 1ul;
+    BigUnsignedInt copy = *this * rhs.leastSignificantDigit();
+    copy.m_digits.reserve(digitCount() + rhs.digitCount());
+    auto rhsIt = rhs.rightToLeftConstBegin() + 1ul;
     for (size_t i = 1; i != rhs.digitCount(); ++i) {
         copy.addShiftedMultiplied(*this, i, *rhsIt);
+        //        std::cout << copy << '\n';
         ++rhsIt;
     }
     swap(copy, *this);
@@ -219,8 +282,7 @@ BigUnsignedInt &BigUnsignedInt::operator*=(const size_t rhs) {
 }
 
 BigUnsignedInt &BigUnsignedInt::operator+=(size_t rhs) {
-    static const size_t additionRoom =
-        std::numeric_limits<size_t>::max() - s_base;
+    static const size_t additionRoom = std::numeric_limits<size_t>::max() - s_base;
     if (rhs <= additionRoom) {
         *rightToLeftBegin() += rhs;
         bubble();
@@ -272,8 +334,10 @@ void BigUnsignedInt::addShifted(const BigUnsignedInt &rhs, size_t shiftAmount) {
             m_digits.push_back(1ul);
         } else {
             *thisIt += 1;
-            bubble(static_cast<size_t>(
-                std::abs(std::distance(rightToLeftBegin(), thisIt))));
+            bubble(0);
+            //            bubble(static_cast<size_t>(
+            //                std::abs(std::distance(rightToLeftBegin(),
+            //                thisIt))));
         }
     }
 }
@@ -323,24 +387,24 @@ BigUnsignedInt &BigUnsignedInt::operator%=(size_t mod) {
     return *this;
 }
 
-std::pair<size_t, BigUnsignedInt>
-divisionSubRoutine(const BigUnsignedInt &dividend,
-                   const BigUnsignedInt &divisor) {
-    if (dividend < divisor) {
+std::pair<size_t, BigUnsignedInt> divisionSubRoutine(BigUnsignedInt dividend, const BigUnsignedInt &divisor) {
+    if (lessThanViaIterators(dividend.leftToRightConstBegin(), dividend.leftToRightConstEnd(),
+                             divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd())) {
         return {0ul, dividend};
     }
     assert(divisor != 0);
     assert(divisor.mostSignificantDigit() * 2 >= BigUnsignedInt::s_base);
     const size_t n = divisor.digitCount();
     assert(dividend.digitCount() <= n + 1);
-    if (dividend >= divisor.shiftedCopy(1)) {
-        auto result = divisionSubRoutine(
-            dividend - divisor * BigUnsignedInt::s_base, divisor);
-        result.first += BigUnsignedInt::s_base;
-        return result;
+    size_t correction = 0ul;
+    while (not lessThanShiftedRhsViaIterators(dividend.leftToRightConstBegin(), dividend.leftToRightConstEnd(),
+                                              divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd(), 1)) {
+        subtractViaIterators(dividend.rightToLeftBegin() + 1ul, dividend.rightToLeftEnd(),
+                             divisor.rightToLeftConstBegin(), divisor.rightToLeftConstEnd());
+        dividend.resizeToFit();
+        correction += BigUnsignedInt::s_base;
     }
-    size_t q = std::min(dividend.twoPrefix() / divisor.mostSignificantDigit(),
-                        BigUnsignedInt::s_base - 1ul);
+    size_t q = std::min(dividend.twoPrefix() / divisor.mostSignificantDigit(), BigUnsignedInt::s_base - 1ul);
 
     BigUnsignedInt T = divisor * q;
     while (T > dividend) {
@@ -348,7 +412,7 @@ divisionSubRoutine(const BigUnsignedInt &dividend,
         T -= divisor;
     }
 
-    return {q, dividend - T};
+    return {q + correction, dividend - T};
 }
 
 BigUnsignedInt BigUnsignedInt::operator/(const BigUnsignedInt &divisor) const {
@@ -381,30 +445,8 @@ BigUnsignedInt BigUnsignedInt::operator*(const BigUnsignedInt &rhs) const {
 
 BigUnsignedInt &BigUnsignedInt::operator-=(const BigUnsignedInt &rhs) {
     assert(rhs <= *this);
-    auto           rhsIt  = rhs.rightToLeftConstBegin();
-    auto           thisIt = rightToLeftBegin();
-    unsigned short carry  = 0ul;
-    for (; rhsIt != rhs.rightToLeftConstEnd(); ++thisIt, ++rhsIt) {
-        if (*thisIt >= *rhsIt + carry) {
-            *thisIt -= *rhsIt + carry;
-            carry = 0;
-        } else {
-            *thisIt += s_base;
-            *thisIt -= *rhsIt + carry;
-            carry = 1ul;
-        }
-    }
-    if (carry != 0ul) {
-        while (true) {
-            assert(thisIt != rightToLeftEnd());
-            if (*thisIt > 0) {
-                --*thisIt;
-                break;
-            }
-            *thisIt = s_base - 1ul;
-            ++thisIt;
-        }
-    }
+
+    subtractViaIterators(rightToLeftBegin(), rightToLeftEnd(), rhs.rightToLeftConstBegin(), rhs.rightToLeftConstEnd());
     resizeToFit();
     return *this;
 }
@@ -428,13 +470,11 @@ static size_t ceilingIntegerDivision(size_t a, size_t b) {
     return (a + b - 1) / b;
 }
 
-std::pair<BigUnsignedInt, BigUnsignedInt>
-longDivision(const BigUnsignedInt &dividend, const BigUnsignedInt &divisor) {
+std::pair<BigUnsignedInt, BigUnsignedInt> longDivision(const BigUnsignedInt &dividend, const BigUnsignedInt &divisor) {
     if (dividend < divisor) {
         return {0, dividend};
     }
-    const size_t t = ceilingIntegerDivision(
-        BigUnsignedInt::s_base, 2ul * divisor.mostSignificantDigit());
+    const size_t t = ceilingIntegerDivision(BigUnsignedInt::s_base, 2ul * divisor.mostSignificantDigit());
     if (t > 1) {
         return longDivisionAfterAdjustingDivisor(dividend * t, divisor * t);
     } else {
@@ -442,9 +482,8 @@ longDivision(const BigUnsignedInt &dividend, const BigUnsignedInt &divisor) {
     }
 }
 
-std::pair<BigUnsignedInt, BigUnsignedInt>
-longDivisionAfterAdjustingDivisor(BigUnsignedInt        dividend,
-                                  const BigUnsignedInt &divisor) {
+std::pair<BigUnsignedInt, BigUnsignedInt> longDivisionAfterAdjustingDivisor(BigUnsignedInt        dividend,
+                                                                            const BigUnsignedInt &divisor) {
     assert(divisor <= dividend);
     assert(divisor.mostSignificantDigit() * 2ul >= BigUnsignedInt::s_base);
 
@@ -469,8 +508,7 @@ longDivisionAfterAdjustingDivisor(BigUnsignedInt        dividend,
 
         m = dividend.digitCount();
     }
-    if (m > n ||
-        dividend.mostSignificantDigit() >= divisor.mostSignificantDigit()) {
+    if (m > n || dividend.mostSignificantDigit() >= divisor.mostSignificantDigit()) {
         divisorDigits[0ul] = divisionSubRoutine(dividend, divisor).first;
     }
 
@@ -479,18 +517,15 @@ longDivisionAfterAdjustingDivisor(BigUnsignedInt        dividend,
 
 BigUnsignedInt BigUnsignedInt::prefix(size_t length) const {
     assert(length <= digitCount());
-    return BigUnsignedInt(std::vector<size_t>(rightToLeftConstEnd() - length,
-                                              rightToLeftConstEnd()));
+    return BigUnsignedInt(std::vector<size_t>(rightToLeftConstEnd() - length, rightToLeftConstEnd()));
 }
 
 BigUnsignedInt BigUnsignedInt::suffix(size_t length) const {
     assert(length <= digitCount());
-    return BigUnsignedInt(std::vector<size_t>(
-        rightToLeftConstBegin(), rightToLeftConstBegin() + length));
+    return BigUnsignedInt(std::vector<size_t>(rightToLeftConstBegin(), rightToLeftConstBegin() + length));
 }
 
-BigUnsignedInt BigUnsignedInt::createFromMostSignificantDigit(size_t digit,
-                                                              size_t position) {
+BigUnsignedInt BigUnsignedInt::createFromMostSignificantDigit(size_t digit, size_t position) {
     std::vector<size_t> digits(position, 0);
     digits[position] = digit;
     return BigUnsignedInt(std::move(digits));
@@ -506,16 +541,11 @@ BigUnsignedInt BigUnsignedInt::shiftedCopy(size_t shiftAmount) const {
     return copy;
 }
 
-void BigUnsignedInt::addShiftedMultiplied(const BigUnsignedInt &rhs,
-                                          size_t                shiftAmount,
-                                          size_t                multiplier) {
+void BigUnsignedInt::addShiftedMultiplied(const BigUnsignedInt &rhs, size_t shiftAmount, size_t multiplier) {
     assert(multiplier < s_base);
-    assert(multiplier * (s_base - 1ul) <=
-           std::numeric_limits<size_t>::max() - s_base);
+    assert(multiplier * (s_base - 1ul) <= std::numeric_limits<size_t>::max() - s_base);
 
-    if (rhs.digitCount() + shiftAmount > digitCount()) {
-        m_digits.resize(rhs.digitCount() + shiftAmount);
-    }
+    m_digits.resize(std::max(rhs.digitCount() + shiftAmount, digitCount()) + 1);
 
     auto thisIt = rightToLeftBegin() + shiftAmount;
     auto rhsIt  = rhs.rightToLeftConstBegin();
@@ -532,9 +562,11 @@ void BigUnsignedInt::addShiftedMultiplied(const BigUnsignedInt &rhs,
     }
     if (carry > 0ul) {
         *thisIt += carry;
-        bubble(static_cast<size_t>(
-            std::abs(std::distance(rightToLeftBegin(), thisIt))));
     }
+    if (m_digits.back() == 0ul) {
+        m_digits.resize(m_digits.size() - 1);
+    }
+    bubble(0);
 }
 
 size_t BigUnsignedInt::twoPrefix() const {

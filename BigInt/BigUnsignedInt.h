@@ -74,7 +74,7 @@ protected:
     friend void swap(BigUnsignedInt &a, BigUnsignedInt &b);
 
     friend std::pair<size_t, BigUnsignedInt>
-    divisionSubRoutine(const BigUnsignedInt &dividend,
+    divisionSubRoutine(BigUnsignedInt dividend,
                        const BigUnsignedInt &divisor);
 
     friend std::pair<BigUnsignedInt, BigUnsignedInt>
