@@ -8,19 +8,26 @@
 class DigitVector {
 
 public:
-    static const size_t s_base = std::sqrt(std::numeric_limits<size_t>::max()) - 1ul;
+    static const size_t s_base =
+        std::sqrt(std::numeric_limits<size_t>::max()) - 1ul;
     //    static const size_t s_base = 10ul;
 
 protected:
+    size_t digitAt(size_t index) const;
+
     DigitVector();
 
-    DigitVector(std::vector<size_t> && digits);
+    DigitVector(std::vector<size_t> &&digits);
 
     size_t digitCount() const;
+
+    void shift(size_t shiftAmount);
 
     size_t mostSignificantDigit() const;
 
     size_t secondMostSignificantDigit() const;
+
+    size_t leastSignificantDigit() const;
 
     bool isWellFormed() const;
 
