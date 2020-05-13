@@ -5,8 +5,7 @@
 DigitVector::DigitVector() {
 }
 
-DigitVector::DigitVector(std::vector<size_t> &&digits)
-    : m_digits(std::move(digits)) {
+DigitVector::DigitVector(std::vector<size_t> &&digits) : m_digits(std::move(digits)) {
 }
 
 bool DigitVector::isCorrectlySized() const {
@@ -14,7 +13,6 @@ bool DigitVector::isCorrectlySized() const {
     if (mostSignificantDigit() == 0ul) {
         return digitCount() == 1; // Is the value zero
     }
-
     return true;
 }
 
@@ -43,13 +41,11 @@ std::vector<size_t>::iterator DigitVector::rightToLeftEnd() {
     return m_digits.end();
 }
 
-std::vector<size_t>::const_reverse_iterator
-DigitVector::leftToRightConstBegin() const {
+std::vector<size_t>::const_reverse_iterator DigitVector::leftToRightConstBegin() const {
     return m_digits.crbegin();
 }
 
-std::vector<size_t>::const_reverse_iterator
-DigitVector::leftToRightConstEnd() const {
+std::vector<size_t>::const_reverse_iterator DigitVector::leftToRightConstEnd() const {
     return m_digits.crend();
 }
 
@@ -65,7 +61,7 @@ bool DigitVector::isWellFormed() const {
     if (not isCorrectlySized()) {
         return false;
     }
-    for (const auto it : m_digits) {
+    for (const auto &it : m_digits) {
         if (it >= s_base) {
             return false;
         }

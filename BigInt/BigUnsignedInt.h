@@ -72,19 +72,16 @@ public:
 protected:
     friend void swap(BigUnsignedInt &a, BigUnsignedInt &b);
 
-    friend std::pair<size_t, BigUnsignedInt> divisionSubRoutine(BigUnsignedInt dividend, const BigUnsignedInt &divisor);
-
-    friend size_t divisionSubRoutine(std::vector<size_t>::const_reverse_iterator        lrcb,
-                                                                const std::vector<size_t>::const_reverse_iterator &lrce,
-                                                                std::vector<size_t>::iterator rlb, std::vector<size_t>::iterator rle,
-                                                                const BigUnsignedInt &divisor);
+    friend size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &lrcb,
+                                     const std::vector<size_t>::const_reverse_iterator &lrce,
+                                     const std::vector<size_t>::iterator &              rlb,
+                                     std::vector<size_t>::iterator                      rle,
+                                     const BigUnsignedInt &                             divisor);
 
     friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivision(const BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
 
     friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivisionAfterAdjustingDivisor(BigUnsignedInt        dividend,
                                                                                        const BigUnsignedInt &divisor);
-
-    void addShifted(const BigUnsignedInt &rhs, size_t shiftAmount);
 
     void addShiftedMultiplied(const BigUnsignedInt &rhs, size_t shiftAmount, size_t multiplier);
 

@@ -8,25 +8,20 @@
 void test();
 
 int main() {
+//    std::cout << std::sqrt(std::numeric_limits<size_t>::max()) << '\n';
     test();
 }
 
 void test() {
     srand(0);
     {
-        const auto a = BigUnsignedInt("344114762636131204723987251767752257351236673732876378648372647864"
-                                      "6324638566592683649584567328654873574357"
-                                      "643542588356832768327648732678432876328753625873243638263751246541"
-                                      "65462436524364312");
-        const auto b = BigUnsignedInt("1238974981729472943721937237921749214124");
-        const auto c = BigUnsignedInt("2777414941468671185338026558910154984455"
-                                      "2996504841711132262601154520458815509947"
-                                      "8619169348886639157342661148101017998716"
-                                      "449386328451198294345897632080");
-        Timer      t("Fixed division");
+        const auto a = BigUnsignedInt("3198842876987466798374634897635764398756873247632874623784783264783267632757328657832647832647832784"
+                                      "683724678326487326743656329847047017259887150872142");
+        const auto b = BigUnsignedInt("29371982479821749842772102198749275124736283768732687126321");
+        const auto c = BigUnsignedInt("108907966262918718058705949100715069245292669239739335359987042442051400703079828741589494778");
+        Timer      timer("Fixed division");
         for (size_t i = 0; i != 1000; ++i) {
-            const auto k = a / b;
-            //            assert(a / b == c);
+            assert(a / b == c);
         }
     }
     {
@@ -63,6 +58,24 @@ void test() {
             size_t a = rand() % (std::numeric_limits<size_t>::max() / 2ul);
             size_t b = rand() % (std::numeric_limits<size_t>::max() / 2ul);
             assert(BigUnsignedInt(a) + BigUnsignedInt(b) == a + b);
+        }
+    }
+    {
+        BigUnsignedInt sumOfNaturalNumbers("5000050000");
+        BigUnsignedInt b(0);
+        {
+            Timer timer("Adding natural numbers");
+            for (size_t i = 0; i != 100001; ++i) {
+                b += BigUnsignedInt(i);
+            }
+            assert(b == sumOfNaturalNumbers);
+        }
+        {
+            Timer timer("Subtracting natural numbers");
+            for (size_t i = 0; i != 100001; ++i) {
+                b -= BigUnsignedInt(i);
+            }
+            assert(b == 0);
         }
     }
     {
