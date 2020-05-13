@@ -387,6 +387,41 @@ BigUnsignedInt &BigUnsignedInt::operator%=(size_t mod) {
     return *this;
 }
 
+std::pair<size_t, BigUnsignedInt> divisionSubRoutine(std::vector<size_t>::const_reverse_iterator        lrcb,
+                                                     const std::vector<size_t>::const_reverse_iterator &lrce,
+                                                     std::vector<size_t>::iterator                      rlb,
+                                                     std::vector<size_t>::iterator rle, const BigUnsignedInt &divisor)
+
+{
+    if (lessThanViaIterators(lrcb, lrce, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd())) {
+        return {0ul, 0ul};
+    }
+    assert(divisor != 0);
+    assert(divisor.mostSignificantDigit() * 2 >= BigUnsignedInt::s_base);
+    const size_t n = divisor.digitCount();
+    assert(std::distance(lrcb, lrce) <= n + 1);
+    size_t correction = 0ul;
+    while (not lessThanShiftedRhsViaIterators(lrcb, lrce, divisor.leftToRightConstBegin(),
+                                              divisor.leftToRightConstEnd(), 1)) {
+        subtractViaIterators(rlb + 1ul, rle, divisor.rightToLeftConstBegin(), divisor.rightToLeftConstEnd());
+        while (*lrcb == 0ul) {
+            ++lrcb;
+        }
+        correction += BigUnsignedInt::s_base;
+    }
+
+    size_t q = std::min(*lrcb * BigUnsignedInt::s_base + *(lrcb + 1ul) / divisor.mostSignificantDigit(),
+                        BigUnsignedInt::s_base - 1ul);
+
+    BigUnsignedInt T = divisor * q;
+    while (greaterThanViaIterators(T.leftToRightConstBegin(), T.leftToRightConstEnd(), lrcb, lrce)) {
+        --q;
+        T -= divisor;
+    }
+
+    return {q + correction, T};
+}
+
 std::pair<size_t, BigUnsignedInt> divisionSubRoutine(BigUnsignedInt dividend, const BigUnsignedInt &divisor) {
     if (lessThanViaIterators(dividend.leftToRightConstBegin(), dividend.leftToRightConstEnd(),
                              divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd())) {
@@ -401,13 +436,15 @@ std::pair<size_t, BigUnsignedInt> divisionSubRoutine(BigUnsignedInt dividend, co
                                               divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd(), 1)) {
         subtractViaIterators(dividend.rightToLeftBegin() + 1ul, dividend.rightToLeftEnd(),
                              divisor.rightToLeftConstBegin(), divisor.rightToLeftConstEnd());
+
         dividend.resizeToFit();
         correction += BigUnsignedInt::s_base;
     }
     size_t q = std::min(dividend.twoPrefix() / divisor.mostSignificantDigit(), BigUnsignedInt::s_base - 1ul);
 
     BigUnsignedInt T = divisor * q;
-    while (T > dividend) {
+    while (greaterThanViaIterators(T.leftToRightConstBegin(), T.leftToRightConstEnd(), dividend.leftToRightConstBegin(),
+                                   dividend.leftToRightConstEnd())) {
         --q;
         T -= divisor;
     }
@@ -498,14 +535,16 @@ std::pair<BigUnsignedInt, BigUnsignedInt> longDivisionAfterAdjustingDivisor(BigU
     while (m > n + 1) {
         const size_t splitIndex = m - n - 1ul;
 
-        const auto prefix = dividend.prefix(n + 1);
-        auto       suffix = dividend.suffix(splitIndex);
+        auto prefix = dividend.prefix(n + 1);
 
-        auto quotientRemainder    = divisionSubRoutine(prefix, divisor);
+        auto quotientRemainder    = divisionSubRoutine(prefix.leftToRightConstBegin(), prefix.leftToRightConstEnd(),
+                                                    prefix.rightToLeftBegin(), prefix.rightToLeftEnd(), divisor);
         divisorDigits[splitIndex] = quotientRemainder.first;
-        swap(dividend, suffix);
-        dividend.addShifted(quotientRemainder.second, splitIndex);
+        prefix.resizeToFit();
+        prefix -= quotientRemainder.second;
 
+        dividend.m_digits.resize(splitIndex);
+        dividend.m_digits.insert(dividend.m_digits.end(), prefix.m_digits.begin(), prefix.m_digits.end());
         m = dividend.digitCount();
     }
     if (m > n || dividend.mostSignificantDigit() >= divisor.mostSignificantDigit()) {

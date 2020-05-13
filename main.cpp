@@ -9,9 +9,10 @@ void test();
 
 int main() {
 
-    BigUnsignedInt b(2222);
-    BigUnsignedInt c(22);
-    assert(b - c == 2200);
+    BigUnsignedInt b(1235412);
+    BigUnsignedInt c(212);
+    const auto d = b / c;
+
     test();
 }
 

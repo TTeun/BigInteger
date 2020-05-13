@@ -59,8 +59,7 @@ public:
 
     bool operator>=(const BigUnsignedInt &rhs) const;
 
-    friend std::ostream &operator<<(std::ostream &        os,
-                                    const BigUnsignedInt &anInt);
+    friend std::ostream &operator<<(std::ostream &os, const BigUnsignedInt &anInt);
 
     friend BigUnsignedInt power(const BigUnsignedInt &base, size_t exponent);
 
@@ -73,21 +72,23 @@ public:
 protected:
     friend void swap(BigUnsignedInt &a, BigUnsignedInt &b);
 
-    friend std::pair<size_t, BigUnsignedInt>
-    divisionSubRoutine(BigUnsignedInt dividend,
-                       const BigUnsignedInt &divisor);
+    friend std::pair<size_t, BigUnsignedInt> divisionSubRoutine(BigUnsignedInt dividend, const BigUnsignedInt &divisor);
 
-    friend std::pair<BigUnsignedInt, BigUnsignedInt>
-    longDivision(const BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
+    friend std::pair<size_t, BigUnsignedInt> divisionSubRoutine(std::vector<size_t>::const_reverse_iterator        lrcb,
+                                                                const std::vector<size_t>::const_reverse_iterator &lrce,
+                                                                std::vector<size_t>::iterator                      rlb,
+                                                                std::vector<size_t>::iterator                      rle,
+                                                                const BigUnsignedInt &divisor);
 
-    friend std::pair<BigUnsignedInt, BigUnsignedInt>
-    longDivisionAfterAdjustingDivisor(BigUnsignedInt        dividend,
-                                      const BigUnsignedInt &divisor);
+    friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivision(const BigUnsignedInt &dividend,
+                                                                  const BigUnsignedInt &divisor);
+
+    friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivisionAfterAdjustingDivisor(BigUnsignedInt        dividend,
+                                                                                       const BigUnsignedInt &divisor);
 
     void addShifted(const BigUnsignedInt &rhs, size_t shiftAmount);
 
-    void addShiftedMultiplied(const BigUnsignedInt &rhs, size_t shiftAmount,
-                              size_t multiplier);
+    void addShiftedMultiplied(const BigUnsignedInt &rhs, size_t shiftAmount, size_t multiplier);
 
     void square();
 
@@ -95,8 +96,7 @@ protected:
 
     void init(size_t val);
 
-    static BigUnsignedInt createFromMostSignificantDigit(size_t digit,
-                                                         size_t position);
+    static BigUnsignedInt createFromMostSignificantDigit(size_t digit, size_t position);
 
     void bubble(size_t startIndex = 0ul);
 
