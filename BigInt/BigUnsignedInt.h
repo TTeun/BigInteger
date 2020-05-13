@@ -5,7 +5,6 @@
 
 #include <cmath>
 #include <ostream>
-#include <vector>
 
 class BigUnsignedInt : private DigitVector {
 
@@ -66,6 +65,8 @@ public:
     friend BigUnsignedInt power(const BigUnsignedInt &base, size_t exponent);
 
     BigUnsignedInt prefix(size_t length) const;
+
+    size_t twoPrefix() const;
 
     BigUnsignedInt suffix(size_t length) const;
 

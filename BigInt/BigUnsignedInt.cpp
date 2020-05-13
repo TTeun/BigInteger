@@ -29,15 +29,6 @@ BigUnsignedInt::BigUnsignedInt(const std::string &val) {
     bubble(0);
 }
 
-//    Fixed division took 0.0930982 seconds
-//    Subtraction took 0.109784 seconds
-//    Division took 0.029626 seconds
-//    Modulo took 0.000310672 seconds
-//    Addition took 0.0159663 seconds
-//    Multiplication took 0.0279563 seconds
-//    Power took 0.000152228 seconds
-//    Factorial took 0.00369891 seconds
-
 void BigUnsignedInt::bubble(size_t startIndex) {
     assert(not m_digits.empty());
     assert(startIndex < digitCount());
@@ -348,11 +339,8 @@ divisionSubRoutine(const BigUnsignedInt &dividend,
         result.first += BigUnsignedInt::s_base;
         return result;
     }
-    size_t q =
-        std::min((BigUnsignedInt::s_base * dividend.mostSignificantDigit() +
-                  dividend.secondMostSignificantDigit()) /
-                     divisor.mostSignificantDigit(),
-                 BigUnsignedInt::s_base - 1ul);
+    size_t q = std::min(dividend.twoPrefix() / divisor.mostSignificantDigit(),
+                        BigUnsignedInt::s_base - 1ul);
 
     BigUnsignedInt T = divisor * q;
     while (T > dividend) {
@@ -547,4 +535,8 @@ void BigUnsignedInt::addShiftedMultiplied(const BigUnsignedInt &rhs,
         bubble(static_cast<size_t>(
             std::abs(std::distance(rightToLeftBegin(), thisIt))));
     }
+}
+
+size_t BigUnsignedInt::twoPrefix() const {
+    return s_base * mostSignificantDigit() + secondMostSignificantDigit();
 }
