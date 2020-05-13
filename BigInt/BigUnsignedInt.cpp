@@ -388,6 +388,7 @@ size_t divisionSubRoutine(std::vector<size_t>::const_reverse_iterator lrcb, cons
     assert(divisor.mostSignificantDigit() * 2 >= BigUnsignedInt::s_base);
     const size_t n = divisor.digitCount();
     assert(std::distance(lrcb, lrce) <= n + 1);
+    assert(std::distance(lrcb, lrce) >= n);
     size_t correction = 0ul;
 
     while (not lessThanShiftedRhsViaIterators(lrcb, lrce, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd(), 1)) {
@@ -403,15 +404,19 @@ size_t divisionSubRoutine(std::vector<size_t>::const_reverse_iterator lrcb, cons
     }
     q = std::min(q, BigUnsignedInt::s_base - 1ul);
 
-    BigUnsignedInt T = divisor * q;
+    if (*lrcb == 0) {
+        ++lrcb;
+    }
 
-    size_t index = 0ul;
+    BigUnsignedInt T     = divisor * q;
+//    size_t         index = 0ul;
     while (greaterThanViaIterators(T.leftToRightConstBegin(), T.leftToRightConstEnd(), lrcb, lrce)) {
-        ++index;
-        std::cout << index << '\n';
+//        ++index;
+//        std::cout << index << '\n';
         --q;
         T -= divisor;
     }
+
     subtractViaIterators(rlb, rle, T.rightToLeftConstBegin(), T.rightToLeftConstEnd());
 
     return q + correction;

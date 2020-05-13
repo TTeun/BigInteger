@@ -8,8 +8,8 @@
 class DigitVector {
 
 public:
-    //    static const size_t s_base = std::sqrt(std::numeric_limits<size_t>::max()) - 1ul;
-    static const size_t s_base = 10ul;
+        static const size_t s_base = std::sqrt(std::numeric_limits<size_t>::max()) - 1ul;
+//    static const size_t s_base = 1000ul;
 
 protected:
     size_t digitAt(size_t index) const;

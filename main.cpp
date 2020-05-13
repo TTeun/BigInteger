@@ -8,12 +8,6 @@
 void test();
 
 int main() {
-//    BigUnsignedInt a("5600");
-//    BigUnsignedInt b("502");
-//    const auto     k = a / b;
-//    std::cout << k << '\n';
-//    return 0;
-
     test();
 }
 
@@ -47,8 +41,9 @@ void test() {
     {
         Timer timer("Division");
         for (size_t dummy = 0; dummy != 10000; ++dummy) {
-            size_t a = rand();
-            size_t b = rand();
+            size_t a = rand() + 1;
+            size_t b = rand() + 1;
+
             if (BigUnsignedInt(a) / BigUnsignedInt(b) != a / b) {
                 std::cout << a << " / " << b << " != " << BigUnsignedInt(a) / BigUnsignedInt(b) << '\n';
                 assert(false);
