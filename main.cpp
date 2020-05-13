@@ -9,36 +9,46 @@ void test();
 
 int main()
 {
+    {
+        const auto a = BigUnsignedInt(
+            "3441147626361312047239872517677522573512366737328763786483726478646324638566592683649584567328654873574357"
+            "64354258835683276832764873267843287632875362587324363826375124654165462436524364312");
+        const auto b = BigUnsignedInt("1238974981729472943721937237921749214124");
+        const auto c = BigUnsignedInt("27774149414686711853380265589101549844552996504841711132262601154520458815509947"
+                                      "8619169348886639157342661148101017998716449386328451198294345897632080");
+        Timer t("Fixed division");
+        for (size_t i = 0; i != 1000; ++i) {
+            assert(a / b == c);
+        }
+    }
     test();
 }
 
 void test()
 {
-    {
-        BigUnsignedInt b("321231241421312321");
-        BigUnsignedInt c("321231241421312323");
-        assert(b < c);
-        assert(c > b);
-        c -= b;
-        assert(c == 2);
-    }
+    srand(0);
     {
         Timer timer("Subtraction");
-        BigUnsignedInt b("21784672876238762183782176387213213");
-        BigUnsignedInt c("327846728238762183782176387213213");
-        b -= c;
-        assert(b == BigUnsignedInt("21456826148000000000000000000000000"));
-    }
-    {
-        Timer timer("Division");
-        BigUnsignedInt b("42321");
-        BigUnsignedInt c("32321");
-        for (size_t dummy = 0; dummy != 1000; ++dummy) {
-            assert(b / c == 1);
+        for (size_t dummy = 0; dummy != 2000; ++dummy) {
+            BigUnsignedInt b("21784672876238762183782176387213213");
+            BigUnsignedInt c("327846728238762183782176387213213");
+            b -= c;
+            assert(b == BigUnsignedInt("21456826148000000000000000000000000"));
         }
     }
     {
-        Timer timer("Mudolo");
+        Timer timer("Division");
+        for (size_t dummy = 0; dummy != 10000; ++dummy) {
+            size_t a = rand();
+            size_t b = rand() % 1222221ul;
+            if (BigUnsignedInt(a) / BigUnsignedInt(b) != a / b) {
+                std::cout << a << " / " << b << " != " << BigUnsignedInt(a) / BigUnsignedInt(b) << '\n';
+                assert(false);
+            }
+        }
+    }
+    {
+        Timer timer("Modulo");
         BigUnsignedInt b("9945549994547342487362847632487678463291881729");
         for (size_t dummy = 0; dummy != 1000; ++dummy) {
             assert(b % 1237862343UL == 688386621UL);
@@ -46,28 +56,18 @@ void test()
     }
     {
         Timer timer("Addition");
-        for (size_t dummy = 0; dummy != 1000; ++dummy) {
-            size_t a = 22;
-            BigUnsignedInt b(22);
-            for (size_t i = 0; i != 160; ++i) {
-                a += 2131231274;
-                b += 2131231274;
-            }
-            assert(b == a);
+        for (size_t dummy = 0; dummy != 10000; ++dummy) {
+            size_t a = rand() % (std::numeric_limits<size_t>::max() / 2ul);
+            size_t b = rand() % (std::numeric_limits<size_t>::max() / 2ul);
+            assert(BigUnsignedInt(a) + BigUnsignedInt(b) == a + b);
         }
     }
-
     {
         Timer timer("Multiplication");
-        for (size_t dummy = 0; dummy != 1000; ++dummy) {
-
-            size_t a = 22;
-            BigUnsignedInt b(22);
-            for (size_t i = 0; i != 16; ++i) {
-                a *= 10;
-                b *= 10;
-            }
-            assert(b == a);
+        for (size_t dummy = 0; dummy != 10000; ++dummy) {
+            size_t a = rand() % std::numeric_limits<size_t>::max();
+            size_t b = rand() % std::numeric_limits<size_t>::max();
+            assert(BigUnsignedInt(a) * BigUnsignedInt(b) == a * b);
         }
     }
     {
@@ -80,10 +80,8 @@ void test()
             "583726015528348786419432054508915275783882625175435528800822842770817965453762184851149029376");
 
         Timer timer("Power");
-        for (size_t dummy = 0; dummy != 1000; ++dummy) {
-            BigUnsignedInt b = power(BigUnsignedInt(2), 2000);
-            assert(b == twoToThePowerTwoThousand);
-        }
+        BigUnsignedInt b = power(BigUnsignedInt(2), 2000);
+        assert(b == twoToThePowerTwoThousand);
     }
     {
         const BigUnsignedInt thousandFactorial(
@@ -114,12 +112,10 @@ void test()
             "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
             "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
         Timer timer("Factorial");
-        for (size_t dummy = 0; dummy != 1000; ++dummy) {
-            BigUnsignedInt b = 1;
-            for (size_t i = 1; i != 1001; ++i) {
-                b *= i;
-            }
-            assert(b == thousandFactorial);
+        BigUnsignedInt b = 1;
+        for (size_t i = 1; i != 1001; ++i) {
+            b *= i;
         }
+        assert(b == thousandFactorial);
     }
 }

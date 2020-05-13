@@ -1,21 +1,15 @@
 #ifndef TEUN_GAME_BIGUNSIGNEDINT_H
 #define TEUN_GAME_BIGUNSIGNEDINT_H
 
+#include "DigitVector.h"
+
 #include <cmath>
-#include <cstddef>
-#include <limits>
 #include <ostream>
 #include <vector>
 
-class BigUnsignedInt {
-
-    // ToDo static const additionRoom = size_t::max() - s_base;
-    // subtraction using carry
+class BigUnsignedInt : private DigitVector {
 
 public:
-    //    static const size_t s_base = std::sqrt(std::numeric_limits<size_t>::max()) - 1ul;
-    static const size_t s_base = 10ul;
-
 public:
     BigUnsignedInt();
 
@@ -67,35 +61,29 @@ public:
 
     bool operator>=(const BigUnsignedInt & rhs) const;
 
-    size_t mostSignificantDigit() const;
-
-    size_t secondMostSignificantDigit() const;
-
     friend std::ostream & operator<<(std::ostream & os, const BigUnsignedInt & anInt);
 
     friend BigUnsignedInt power(const BigUnsignedInt & base, size_t exponent);
-
-    size_t digitCount() const;
 
     BigUnsignedInt prefix(size_t length) const;
 
     BigUnsignedInt suffix(size_t length) const;
 
 protected:
-    friend std::pair<size_t, BigUnsignedInt> divisionSubRoutine(const BigUnsignedInt & dividend, const BigUnsignedInt & divisor);
+    friend void swap(BigUnsignedInt & a, BigUnsignedInt & b);
 
-    friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivision(const BigUnsignedInt & dividend, const BigUnsignedInt & divisor);
+    friend std::pair<size_t, BigUnsignedInt> divisionSubRoutine(const BigUnsignedInt & dividend,
+                                                                const BigUnsignedInt & divisor);
 
-    friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivisionAfterAdjustingDivisor(const BigUnsignedInt & dividend,
-                                                            const BigUnsignedInt & divisor);
+    friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivision(const BigUnsignedInt & dividend,
+                                                                  const BigUnsignedInt & divisor);
 
-    bool isWellFormed() const;
+    friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivisionAfterAdjustingDivisor(BigUnsignedInt dividend,
+                                                                                       const BigUnsignedInt & divisor);
 
     void shiftAdd(const BigUnsignedInt & rhs, size_t shiftAmount);
 
     void square();
-
-    bool isCorrectlySized() const;
 
     void resizeToFit();
 
@@ -107,23 +95,7 @@ protected:
 
     BigUnsignedInt & shift(size_t shiftAmount);
 
-    std::vector<size_t>::reverse_iterator leftToRightBegin();
-
-    std::vector<size_t>::reverse_iterator leftToRightEnd();
-
-    std::vector<size_t>::iterator rightToLeftBegin();
-
-    std::vector<size_t>::iterator rightToLeftEnd();
-
-    std::vector<size_t>::const_reverse_iterator leftToRightConstBegin() const;
-
-    std::vector<size_t>::const_reverse_iterator leftToRightConstEnd() const;
-
-    std::vector<size_t>::const_iterator rightToLeftConstBegin() const;
-
-    std::vector<size_t>::const_iterator rightToLeftConstEnd() const;
-
-    std::vector<size_t> m_digits;
+    BigUnsignedInt shift(size_t shiftAmount) const;
 };
 
 #endif // TEUN_GAME_BIGUNSIGNEDINT_H

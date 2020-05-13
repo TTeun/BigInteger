@@ -3,4 +3,4 @@ project(untitled2)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(untitled2 main.cpp BigInt/BigUnsignedInt.cpp BigInt/BigUnsignedInt.h BigInt/BigInt.cpp BigInt/BigInt.h timer.cpp timer.h)
+add_executable(untitled2 main.cpp BigInt/BigUnsignedInt.cpp BigInt/BigUnsignedInt.h timer.cpp timer.h BigInt/DigitVector.cpp BigInt/DigitVector.h)
