@@ -7,13 +7,13 @@
 class Timer {
 
 public:
-    explicit Timer(std::string string = "");
+ Timer();
 
     ~Timer();
 
-private:
-    std::string m_string;
+    double elapsed() const;
 
+private:
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 };
 

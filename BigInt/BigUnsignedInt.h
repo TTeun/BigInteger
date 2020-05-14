@@ -3,7 +3,6 @@
 
 #include "DigitVector.h"
 
-#include <cmath>
 #include <ostream>
 
 class BigUnsignedInt : private DigitVector {
@@ -11,11 +10,19 @@ class BigUnsignedInt : private DigitVector {
 public:
     BigUnsignedInt();
 
+    BigUnsignedInt(const BigUnsignedInt &other);
+
     explicit BigUnsignedInt(std::vector<size_t> &&digits);
 
     BigUnsignedInt(size_t val);
 
     BigUnsignedInt(const std::string &val);
+
+    static BigUnsignedInt createRandom(size_t numberOfDigits);
+
+    static BigUnsignedInt createRandomFromDecimalDigits(size_t orderOfMagnitude);
+
+    size_t approximatePowerOfTen() const;
 
     BigUnsignedInt &operator=(const BigUnsignedInt &rhs);
 
@@ -81,8 +88,6 @@ private:
     friend BigUnsignedInt longDivision(BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
 
     friend BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
-
-    void addShiftedMultiplied(const BigUnsignedInt &rhs, size_t shiftAmount, size_t multiplier);
 
     void square();
 

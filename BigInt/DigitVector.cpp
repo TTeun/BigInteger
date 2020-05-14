@@ -20,11 +20,6 @@ size_t DigitVector::mostSignificantDigit() const {
     return m_digits.back();
 }
 
-size_t DigitVector::secondMostSignificantDigit() const {
-    assert(digitCount() > 1);
-    return *(m_digits.rbegin() + 1);
-}
-
 std::vector<size_t>::reverse_iterator DigitVector::leftToRightBegin() {
     return m_digits.rbegin();
 }

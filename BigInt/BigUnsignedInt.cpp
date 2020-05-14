@@ -2,15 +2,73 @@
 
 #include <cassert>
 #include <iostream>
+#include <random>
+#include <sstream>
 
 /* =================== Static functions =================== */
+
+static void carryAdditionViaIterators(std::vector<size_t>::iterator thisIt, const std::vector<size_t>::iterator &thisEnd, size_t carry) {
+    assert(carry != 0ul);
+    assert(carry + DigitVector::s_base < std::numeric_limits<size_t>::max());
+    for (; thisIt != thisEnd; ++thisIt) {
+        *thisIt += carry;
+        if (*thisIt < DigitVector::s_base) {
+            return;
+        }
+        carry = (*thisIt) / DigitVector::s_base;
+        *thisIt %= DigitVector::s_base;
+    }
+    assert(false);
+}
+
+static void addViaIterators(std::vector<size_t>::iterator             thisIt,
+                            const std::vector<size_t>::iterator       thisEnd,
+                            std::vector<size_t>::const_iterator       rhsIt,
+                            const std::vector<size_t>::const_iterator rhsEnd) {
+    assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l); // Always enough space for adding two proper digit vectors
+    unsigned short carry = 0ul;
+    for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
+        *thisIt += *rhsIt + carry;
+        if (*thisIt >= DigitVector::s_base) {
+            carry = (*thisIt) / DigitVector::s_base;
+            *thisIt %= DigitVector::s_base;
+        } else {
+            carry = 0ul;
+        }
+    }
+    if (carry == 1ul) {
+        carryAdditionViaIterators(thisIt, thisEnd, 1ul);
+    }
+}
+
+static void addMultipleViaIterators(std::vector<size_t>::iterator             thisIt,
+                                    const std::vector<size_t>::iterator       thisEnd,
+                                    std::vector<size_t>::const_iterator       rhsIt,
+                                    const std::vector<size_t>::const_iterator rhsEnd,
+                                    const size_t                              multiplier) {
+    assert(multiplier < DigitVector::s_base);
+    assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l); // Always enough space for adding two proper digit vectors
+    size_t carry = 0ul;
+    for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
+        *thisIt += (*rhsIt * multiplier) + carry;
+        if (*thisIt >= DigitVector::s_base) {
+            carry = (*thisIt) / DigitVector::s_base;
+            *thisIt %= DigitVector::s_base;
+        } else {
+            carry = 0ul;
+        }
+    }
+    if (carry > 0UL) {
+        carryAdditionViaIterators(thisIt, thisEnd, carry);
+    }
+}
 
 static void subtractViaIterators(std::vector<size_t>::iterator             thisIt,
                                  const std::vector<size_t>::iterator       thisEnd,
                                  std::vector<size_t>::const_iterator       rhsIt,
                                  const std::vector<size_t>::const_iterator rhsEnd) {
     assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd));
-    unsigned short carry = 0ul;
+    size_t carry = 0ul;
     for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
         if (*thisIt >= *rhsIt + carry) {
             *thisIt -= *rhsIt + carry;
@@ -28,35 +86,7 @@ static void subtractViaIterators(std::vector<size_t>::iterator             thisI
                 --*thisIt;
                 break;
             }
-            *thisIt = DigitVector::s_base - 1ul;
-            ++thisIt;
-        }
-    }
-}
-
-static void addViaIterators(std::vector<size_t>::iterator             thisIt,
-                            const std::vector<size_t>::iterator       thisEnd,
-                            std::vector<size_t>::const_iterator       rhsIt,
-                            const std::vector<size_t>::const_iterator rhsEnd) {
-    assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1ul); // Always enough space for adding two proper digit vectors
-    unsigned short carry = 0ul;
-    for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
-        *thisIt += *rhsIt + carry;
-        if (*thisIt >= DigitVector::s_base) {
-            carry = 1ul;
-            *thisIt %= DigitVector::s_base;
-        } else {
-            carry = 0ul;
-        }
-    }
-    if (carry == 1ul) {
-        while (true) {
-            assert(thisIt != thisEnd);
-            ++*thisIt;
-            if (*thisIt < DigitVector::s_base) {
-                break;
-            }
-            *thisIt = 0ul;
+            *thisIt = DigitVector::s_maxDigit;
             ++thisIt;
         }
     }
@@ -148,7 +178,7 @@ size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &lef
     } else {
         quotientEstimate = (*leftToRightConstIt * BigUnsignedInt::s_base + *(leftToRightConstIt + 1ul)) / divisor.mostSignificantDigit();
     }
-    quotientEstimate    = std::min(quotientEstimate, BigUnsignedInt::s_base - 1ul);
+    quotientEstimate    = std::min(quotientEstimate, DigitVector::s_base - 1ul);
     const size_t offset = *leftToRightConstIt == 0 ? 1ul : 0ul;
 
     auto closestMultipleEstimate = divisor * quotientEstimate;
@@ -238,14 +268,23 @@ BigUnsignedInt power(const BigUnsignedInt &base, size_t exponent) {
     }
     BigUnsignedInt aux(1);
     BigUnsignedInt copy(base);
+
     while (exponent > 1ul) {
+        assert(aux.isWellFormed());
+        assert(copy.isWellFormed());
         if (exponent % 2ul == 1ul) {
             aux *= copy;
         }
         exponent /= 2ul;
         copy.square();
     }
+    assert(aux.isWellFormed());
+    assert(copy.isWellFormed());
+
     copy *= aux;
+    assert(aux.isWellFormed());
+    assert(copy.isWellFormed());
+
     return copy;
 }
 
@@ -266,12 +305,31 @@ BigUnsignedInt::BigUnsignedInt(std::vector<size_t> &&digits) : DigitVector(std::
     bubble();
 }
 
+BigUnsignedInt::BigUnsignedInt(const BigUnsignedInt &other)
+    : DigitVector(std::vector<size_t>(other.m_digits.begin(), other.m_digits.end())) {
+}
+
 BigUnsignedInt::BigUnsignedInt(const std::string &val) {
-    init(0);
-    for (char charIt : val) {
-        *this *= 10;
-        *this += charIt - '0';
+    static const size_t maximumDecimalDigitsInSizeType = std::log10(std::numeric_limits<size_t>::max());
+    static const size_t largestMultipleOfTenInSizeType = modPower(10ul, maximumDecimalDigitsInSizeType, std::numeric_limits<size_t>::max());
+
+    m_digits          = {0ul};
+    size_t startIndex = val.length() % maximumDecimalDigitsInSizeType;
+    size_t subVal;
+    if (startIndex != 0ul) {
+        *this *= largestMultipleOfTenInSizeType;
+        std::istringstream iss(val.substr(0, startIndex));
+        iss >> subVal;
+        *this += subVal;
     }
+    while (startIndex + maximumDecimalDigitsInSizeType <= val.length()) {
+        *this *= largestMultipleOfTenInSizeType;
+        std::istringstream iss(val.substr(startIndex, maximumDecimalDigitsInSizeType));
+        iss >> subVal;
+        *this += subVal;
+        startIndex += maximumDecimalDigitsInSizeType;
+    }
+    assert(isWellFormed());
 }
 
 void BigUnsignedInt::bubble(size_t startIndex) {
@@ -386,14 +444,19 @@ BigUnsignedInt &BigUnsignedInt::operator*=(const BigUnsignedInt &rhs) {
         square();
         return *this;
     }
+    assert(isWellFormed());
+    assert(rhs.isWellFormed());
     const auto copy = *this;
     this->m_digits.reserve(digitCount() + rhs.digitCount() + 1);
     *this *= rhs.leastSignificantDigit();
+
     auto rhsIt = rhs.rightToLeftConstBegin() + 1ul;
     for (size_t i = 1; i != rhs.digitCount(); ++i) {
-        this->addShiftedMultiplied(copy, i, *rhsIt);
+        m_digits.resize(std::max(copy.digitCount() + i, digitCount()) + 1);
+        addMultipleViaIterators(rightToLeftBegin() + i, rightToLeftEnd(), copy.rightToLeftConstBegin(), copy.rightToLeftConstEnd(), *rhsIt);
         ++rhsIt;
     }
+    resizeToFit();
     return *this;
 }
 
@@ -413,8 +476,8 @@ BigUnsignedInt &BigUnsignedInt::operator*=(const size_t rhs) {
         init(0);
         return *this;
     }
+    m_digits.reserve(m_digits.size() + 3ul);
     if (rhs != 1ul) {
-        m_digits.reserve(m_digits.size() + 3ul);
         if (rhs < s_base) {
             for (auto &it : m_digits) {
                 it *= rhs;
@@ -424,6 +487,7 @@ BigUnsignedInt &BigUnsignedInt::operator*=(const size_t rhs) {
             *this *= BigUnsignedInt(rhs);
         }
     }
+    resizeToFit();
     return *this;
 }
 
@@ -538,37 +602,37 @@ BigUnsignedInt BigUnsignedInt::shiftedCopy(size_t shiftAmount) const {
     return copy;
 }
 
-void BigUnsignedInt::addShiftedMultiplied(const BigUnsignedInt &rhs, size_t shiftAmount, size_t multiplier) {
-    assert(multiplier < s_base);
-    assert(multiplier * (s_base - 1ul) <= std::numeric_limits<size_t>::max() - s_base);
-
-    m_digits.resize(std::max(rhs.digitCount() + shiftAmount, digitCount()) + 1);
-
-    auto thisIt = rightToLeftBegin() + shiftAmount;
-    auto rhsIt  = rhs.rightToLeftConstBegin();
-
-    size_t carry = 0ul;
-    for (; rhsIt != rhs.rightToLeftConstEnd(); ++thisIt, ++rhsIt) {
-        *thisIt += (*rhsIt * multiplier) + carry;
-        if (*thisIt >= s_base) {
-            carry = *thisIt / s_base;
-            *thisIt %= s_base;
-        } else {
-            carry = 0ul;
-        }
-    }
-    if (carry > 0ul) {
-        *thisIt += carry;
-    }
-    if (m_digits.back() == 0ul) {
-        m_digits.resize(m_digits.size() - 1);
-    }
-    bubble(0);
-}
-
 BigUnsignedInt &BigUnsignedInt::operator%=(const BigUnsignedInt &mod) {
     assert(mod != 0ul);
     BigUnsignedInt copy(*this);
     *this -= longDivision(copy, mod) * mod;
     return *this;
+}
+
+BigUnsignedInt BigUnsignedInt::createRandom(size_t numberOfDigits) {
+    assert(numberOfDigits > 0ul);
+    std::random_device                    rd;        // Will be used to obtain a seed for the random number engine
+    std::mt19937                          gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<size_t> dis(0, DigitVector::s_maxDigit);
+
+    BigUnsignedInt result(0ul);
+    result.m_digits[0] = dis(gen);
+    for (size_t i = 1; i != numberOfDigits; ++i) {
+        result.shift(1);
+        result.m_digits[0] = dis(gen);
+    }
+    result.resizeToFit();
+    return result;
+}
+
+size_t BigUnsignedInt::approximatePowerOfTen() const {
+    return std::log10(mostSignificantDigit() + 1ul) + (digitCount() - 1ul) * std::log10(DigitVector::s_base);
+}
+
+BigUnsignedInt BigUnsignedInt::createRandomFromDecimalDigits(size_t orderOfMagnitude) {
+    assert(orderOfMagnitude > 0);
+    const auto numberOfDigits = orderOfMagnitude * (std::log(10) / log(DigitVector::s_base)) + 1ul;
+    auto       result         = createRandom(numberOfDigits);
+    assert(result.isWellFormed());
+    return result;
 }

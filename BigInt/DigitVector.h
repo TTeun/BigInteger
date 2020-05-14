@@ -8,9 +8,11 @@
 class DigitVector {
 
 public:
-    //        static const size_t s_base =
-    //            static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
-    static const size_t s_base = 10ul;
+    static const size_t s_base =
+        static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
+    //    static const size_t s_base = 100000ul;
+
+    static const size_t s_maxDigit = s_base - 1ul;
 
 protected:
     size_t digitAt(size_t index) const;
@@ -24,8 +26,6 @@ protected:
     void shift(size_t shiftAmount);
 
     size_t mostSignificantDigit() const;
-
-    size_t secondMostSignificantDigit() const;
 
     size_t leastSignificantDigit() const;
 

@@ -1,8 +1,5 @@
-Fixed division took 1.58235 seconds
-Subtraction took 0.673994 seconds
-Division took 0.0950527 seconds
-Modulo took 0.00377135 seconds
-Addition took 0.0437263 seconds
-Multiplication took 0.061686 seconds
-Power took 0.00730461 seconds
-Factorial took 0.136139 seconds
+Addition:		0.0148446 seconds
+Multiplication:	4.44867 seconds
+Division:		3.35979 seconds
+1000!:			0.115523 seconds
+2^(2000):		0.0069685 seconds
