@@ -18,6 +18,8 @@ public:
 
     BigUnsignedInt(const std::string &val);
 
+    BigUnsignedInt(rightToLeftConstIterator it, rightToLeftConstIterator endIt);
+
     static BigUnsignedInt createRandom(size_t numberOfDigits);
 
     static BigUnsignedInt createRandomFromDecimalDigits(size_t orderOfMagnitude);
@@ -89,12 +91,12 @@ private:
 
     friend BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
 
-    friend void karatsubaMultiply(rightToLeftIterator             thisIt,
-                                  const rightToLeftIterator &     thisEnd,
-                                  rightToLeftConstIterator        rhsIt,
-                                  const rightToLeftConstIterator &rhsEnd,
-                                  rightToLeftConstIterator        copyIt,
-                                  const rightToLeftConstIterator &copyEnd);
+    friend void karatsubaMultiplyViaIterators(rightToLeftIterator             thisIt,
+                                              const rightToLeftIterator &     thisEnd,
+                                              rightToLeftConstIterator        rhsIt,
+                                              const rightToLeftConstIterator &rhsEnd,
+                                              rightToLeftIterator             copyIt,
+                                              const rightToLeftIterator &     copyEnd);
 
     void square();
 

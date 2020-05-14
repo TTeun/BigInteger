@@ -25,8 +25,8 @@ static void addViaIterators(rightToLeftIterator                       thisIt,
                             const rightToLeftIterator                 thisEnd,
                             std::vector<size_t>::const_iterator       rhsIt,
                             const std::vector<size_t>::const_iterator rhsEnd) {
-    assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l); // Always enough space for adding two proper digit vectors
-    unsigned short carry = 0ul;
+    assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l);
+    size_t carry = 0ul;
     for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
         *thisIt += *rhsIt + carry;
         if (*thisIt >= DigitVector::s_base) {
@@ -281,9 +281,12 @@ BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const
                                                 dividend.rightToLeftEnd(),
                                                 divisor);
     }
+    divisorDigits.push_back(0ul);
     bubbleViaIterators(divisorDigits.begin(), divisorDigits.end());
     resizeToFitVector(divisorDigits);
-    return BigUnsignedInt(std::move(divisorDigits));
+    auto result = BigUnsignedInt(std::move(divisorDigits));
+    assert(result.isWellFormed());
+    return result;
 }
 
 void swap(BigUnsignedInt &a, BigUnsignedInt &b) {
@@ -331,20 +334,24 @@ BigUnsignedInt power(const BigUnsignedInt &base, size_t exponent) {
 
 BigUnsignedInt::BigUnsignedInt() {
     init(0);
+    assert(isWellFormed());
 }
 
 BigUnsignedInt::BigUnsignedInt(size_t val) {
     init(val);
+    assert(isWellFormed());
 }
 
 BigUnsignedInt::BigUnsignedInt(std::vector<size_t> &&digits) : DigitVector(std::move(digits)) {
     if (m_digits.empty()) {
         init(0);
     }
+    assert(isWellFormed());
 }
 
 BigUnsignedInt::BigUnsignedInt(const BigUnsignedInt &other)
     : DigitVector(std::vector<size_t>(other.m_digits.begin(), other.m_digits.end())) {
+    assert(isWellFormed());
 }
 
 BigUnsignedInt::BigUnsignedInt(const std::string &val) {
@@ -368,6 +375,14 @@ BigUnsignedInt::BigUnsignedInt(const std::string &val) {
         startIndex += maximumDecimalDigitsInSizeType;
     }
     assert(isWellFormed());
+}
+
+BigUnsignedInt::BigUnsignedInt(rightToLeftConstIterator it, rightToLeftConstIterator endIt) : DigitVector({it, endIt}) {
+    if (it == endIt) {
+        m_digits = {0ul};
+    } else {
+        resizeToFit();
+    }
 }
 
 void BigUnsignedInt::bubble(size_t startIndex) {
@@ -469,29 +484,32 @@ bool BigUnsignedInt::operator>=(const BigUnsignedInt &rhs) const {
     return !(*this < rhs);
 }
 
-void karatsubaMultiply(rightToLeftIterator             thisIt,
-                       const rightToLeftIterator &     thisEnd,
-                       rightToLeftConstIterator        rhsIt,
-                       const rightToLeftConstIterator &rhsEnd,
-                       rightToLeftConstIterator        copyIt,
-                       const rightToLeftConstIterator &copyEnd) {
-    const size_t m = std::min(copyEnd - copyIt, rhsEnd - rhsIt);
+void karatsubaMultiplyViaIterators(rightToLeftIterator             thisIt,
+                                   const rightToLeftIterator &     thisEnd,
+                                   rightToLeftConstIterator        rhsIt,
+                                   const rightToLeftConstIterator &rhsEnd,
+                                   rightToLeftIterator             copyIt,
+                                   const rightToLeftIterator &     copyEnd) {
 
+    const size_t m = std::min(copyEnd - copyIt, rhsEnd - rhsIt);
     if (m < 220ul) {
         multiplyViaIterators(thisIt, thisEnd, rhsIt, rhsEnd, copyIt, copyEnd);
         return;
     }
     const size_t splitIndex = m / 2ul;
 
-    BigUnsignedInt low1(std::vector<size_t>(copyIt, copyIt + splitIndex));
-    BigUnsignedInt high1(std::vector<size_t>(copyIt + splitIndex, copyEnd));
-    BigUnsignedInt low2(std::vector<size_t>(rhsIt, rhsIt + splitIndex));
-    BigUnsignedInt high2(std::vector<size_t>(rhsIt + splitIndex, rhsEnd));
+    BigUnsignedInt low1(copyIt, copyIt + splitIndex);
+    BigUnsignedInt high1(copyIt + splitIndex, copyEnd);
+    BigUnsignedInt low2(rhsIt, rhsIt + splitIndex);
+    BigUnsignedInt high2(rhsIt + splitIndex, rhsEnd);
 
-    const auto z0 = low1 * low2;
-    const auto z2 = high1 * high2;
-
+    const auto     z2 = high1 * high2;
+    BigUnsignedInt z0;
+    z0.m_digits.resize(2ul * splitIndex + 1);
+    karatsubaMultiplyViaIterators(z0.rightToLeftBegin(), z0.rightToLeftEnd(), rhsIt, rhsIt + splitIndex, copyIt, copyIt + splitIndex);
+    z0.resizeToFit();
     addViaIterators(thisIt, thisEnd, z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
+
     addViaIterators(thisIt + 2ul * splitIndex, thisEnd, z2.rightToLeftConstBegin(), z2.rightToLeftConstEnd());
 
     high1 += low1;
@@ -509,20 +527,21 @@ BigUnsignedInt &BigUnsignedInt::operator*=(const BigUnsignedInt &rhs) {
         square();
         return *this;
     }
-    const auto copy = *this;
+    auto copy = *this;
+
     this->m_digits.resize(digitCount() + rhs.digitCount() + 1);
     for (auto thisIt = leftToRightBegin(); thisIt != leftToRightEnd(); ++thisIt) {
         *thisIt = 0ul;
     }
 
-    karatsubaMultiply(rightToLeftBegin(),
-                      rightToLeftEnd(),
-                      rhs.rightToLeftConstBegin(),
-                      rhs.rightToLeftConstEnd(),
-                      copy.rightToLeftConstBegin(),
-                      copy.rightToLeftConstEnd());
+    karatsubaMultiplyViaIterators(rightToLeftBegin(),
+                                  rightToLeftEnd(),
+                                  rhs.rightToLeftConstBegin(),
+                                  rhs.rightToLeftConstEnd(),
+                                  copy.rightToLeftBegin(),
+                                  copy.rightToLeftEnd());
     resizeToFit();
-    //    std::cout << *this << '\n';
+    assert(isWellFormed());
     return *this;
 }
 
@@ -619,7 +638,7 @@ BigUnsignedInt BigUnsignedInt::operator/(const BigUnsignedInt &divisor) const {
 }
 
 BigUnsignedInt BigUnsignedInt::operator*(const BigUnsignedInt &rhs) const {
-    auto copy = *this;
+    BigUnsignedInt copy(*this);
     return copy *= rhs;
 }
 

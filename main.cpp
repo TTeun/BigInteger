@@ -30,33 +30,32 @@ double timeMultiplication(size_t n);
 double timeDivision(size_t n);
 
 int main() {
-//    BigUnsignedInt b(32);
-//    BigUnsignedInt c(17);
-//    b *= c;
-//
-//    return 0;
+    //    BigUnsignedInt b(3212233);
+    //    BigUnsignedInt c(1437);
+    //    b *= c;
 
-//    testMultiplication(250000ul);
-//    testAddition(10000ul);
-//    testSubtraction();
-//    testDivision(1000ul);
-//    testFixedDivision();
-//    testFixedModulo();
-//    testSumNaturalNumbers();
-
-    std::cout << "Addition:\t\t\t" << timeAddition(100) << " seconds\n";
+    //    return 0;
     std::cout << "Multiplication:\t\t" << timeMultiplication(50) << " seconds\n";
+    std::cout << "Addition:\t\t\t" << timeAddition(100) << " seconds\n";
     std::cout << "Division:\t\t\t" << timeDivision(50) << " seconds\n";
     std::cout << "1000!:\t\t\t\t" << timeFactorial() << " seconds\n";
     std::cout << "2^(2000):\t\t\t" << timePower() << " seconds\n";
+
+    testMultiplication(250000ul);
+    testAddition(10000ul);
+    testSubtraction();
+    testDivision(1000ul);
+    testFixedDivision();
+    testFixedModulo();
+    testSumNaturalNumbers();
 }
 
 void testDivision(size_t n) {
     for (size_t dummy = 0; dummy != n; ++dummy) {
-        size_t a = rand() + 1;
-        size_t b = rand() + 1;
-
-        assert(BigUnsignedInt(a) / BigUnsignedInt(b) == a / b);
+        size_t     a = rand() + 1;
+        size_t     b = rand() + 1;
+        const auto k = BigUnsignedInt(a) / BigUnsignedInt(b);
+        assert(k == a / b);
     }
 }
 

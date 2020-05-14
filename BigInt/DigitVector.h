@@ -13,9 +13,9 @@ typedef std::vector<size_t>::const_iterator         rightToLeftConstIterator;
 class DigitVector {
 
 public:
-            static const size_t s_base =
-                static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
-//    static const size_t s_base = 10ul;
+    static const size_t s_base =
+        static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
+    //    static const size_t s_base = 20ul;
 
     static const size_t s_maxDigit = s_base - 1ul;
 
@@ -36,8 +36,6 @@ protected:
 
     bool isWellFormed() const;
 
-    std::vector<size_t> m_digits;
-
     leftToRightIterator leftToRightBegin();
 
     leftToRightIterator leftToRightEnd();
@@ -55,6 +53,8 @@ protected:
     rightToLeftConstIterator rightToLeftConstEnd() const;
 
     bool isCorrectlySized() const;
+
+    std::vector<size_t> m_digits;
 };
 
 #endif // TEUN_GAME_DIGITVECTOR_H
