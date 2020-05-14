@@ -8,7 +8,14 @@
 void test();
 
 int main() {
-//    std::cout << std::sqrt(std::numeric_limits<size_t>::max()) << '\n';
+    BigUnsignedInt       b(22222221);
+    const BigUnsignedInt c(222222221);
+    std::cout << b << '\n';
+
+    b %= c;
+    std::cout << b << '\n';
+
+    return 0;
     test();
 }
 

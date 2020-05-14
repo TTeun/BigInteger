@@ -45,6 +45,8 @@ public:
 
     BigUnsignedInt &operator%=(size_t mod);
 
+    BigUnsignedInt &operator%=(const BigUnsignedInt &mod);
+
     BigUnsignedInt operator/(const BigUnsignedInt &divisor) const;
 
     bool operator==(const BigUnsignedInt &rhs) const;
@@ -65,23 +67,20 @@ public:
 
     BigUnsignedInt prefix(size_t length) const;
 
-    size_t twoPrefix() const;
-
     BigUnsignedInt suffix(size_t length) const;
 
-protected:
+private:
     friend void swap(BigUnsignedInt &a, BigUnsignedInt &b);
 
-    friend size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &lrcb,
-                                     const std::vector<size_t>::const_reverse_iterator &lrce,
-                                     const std::vector<size_t>::iterator &              rlb,
-                                     std::vector<size_t>::iterator                      rle,
+    friend size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &leftToRightConstIt,
+                                     const std::vector<size_t>::const_reverse_iterator &leftToRightConstEnd,
+                                     const std::vector<size_t>::iterator &              rightToLeftIt,
+                                     const std::vector<size_t>::iterator &              rightToLeftEnd,
                                      const BigUnsignedInt &                             divisor);
 
-    friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivision(const BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
+    friend BigUnsignedInt longDivision(BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
 
-    friend std::pair<BigUnsignedInt, BigUnsignedInt> longDivisionAfterAdjustingDivisor(BigUnsignedInt        dividend,
-                                                                                       const BigUnsignedInt &divisor);
+    friend BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
 
     void addShiftedMultiplied(const BigUnsignedInt &rhs, size_t shiftAmount, size_t multiplier);
 
