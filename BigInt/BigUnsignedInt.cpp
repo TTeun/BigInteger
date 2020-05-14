@@ -259,7 +259,7 @@ BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const
                                   divisor);
     }
 
-    std::vector<size_t> divisorDigits(m - n, 0ul);
+    std::vector<size_t> divisorDigits(m - n + 1ul, 0ul);
     while (m > n + 1) {
         const size_t splitIndex = m - n - 1ul;
 
@@ -281,12 +281,10 @@ BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const
                                                 dividend.rightToLeftEnd(),
                                                 divisor);
     }
-    divisorDigits.push_back(0ul);
     bubbleViaIterators(divisorDigits.begin(), divisorDigits.end());
     resizeToFitVector(divisorDigits);
-    auto result = BigUnsignedInt(std::move(divisorDigits));
-    assert(result.isWellFormed());
-    return result;
+    return BigUnsignedInt(std::move(divisorDigits));
+    ;
 }
 
 void swap(BigUnsignedInt &a, BigUnsignedInt &b) {
@@ -490,17 +488,14 @@ void karatsubaMultiplyViaIterators(rightToLeftIterator             thisIt,
                                    const rightToLeftConstIterator &rhsEnd,
                                    rightToLeftIterator             copyIt,
                                    const rightToLeftIterator &     copyEnd) {
-
     const size_t m = std::min(copyEnd - copyIt, rhsEnd - rhsIt);
-    if (m < 220ul) {
+    if (m < 200ul) {
         multiplyViaIterators(thisIt, thisEnd, rhsIt, rhsEnd, copyIt, copyEnd);
         return;
     }
     const size_t splitIndex = m / 2ul;
 
-    BigUnsignedInt low1(copyIt, copyIt + splitIndex);
     BigUnsignedInt high1(copyIt + splitIndex, copyEnd);
-    BigUnsignedInt low2(rhsIt, rhsIt + splitIndex);
     BigUnsignedInt high2(rhsIt + splitIndex, rhsEnd);
 
     const auto     z2 = high1 * high2;
@@ -512,8 +507,13 @@ void karatsubaMultiplyViaIterators(rightToLeftIterator             thisIt,
 
     addViaIterators(thisIt + 2ul * splitIndex, thisEnd, z2.rightToLeftConstBegin(), z2.rightToLeftConstEnd());
 
-    high1 += low1;
-    high2 += low2;
+    high1.m_digits.push_back(0ul);
+    addViaIterators(high1.rightToLeftBegin(), high1.rightToLeftEnd(), copyIt, copyIt + splitIndex);
+    high1.resizeToFit();
+
+    high2.m_digits.push_back(0ul);
+    addViaIterators(high2.rightToLeftBegin(), high2.rightToLeftEnd(), rhsIt, rhsIt + splitIndex);
+    high2.resizeToFit();
 
     auto z1 = high1 * high2 - (z2 + z0);
 
