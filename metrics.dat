@@ -1,5 +1,8 @@
-Addition:		0.0148446 seconds
-Multiplication:	4.44867 seconds
-Division:		3.35979 seconds
-1000!:			0.115523 seconds
-2^(2000):		0.0069685 seconds
+    static const size_t s_base =
+        static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
+
+Addition:			0.000575484 seconds
+Multiplication:		0.0170767 seconds
+Division:			0.0467267 seconds
+1000!:				0.00403532 seconds
+2^(2000):			5.9132e-05 seconds

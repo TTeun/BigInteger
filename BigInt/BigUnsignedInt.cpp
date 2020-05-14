@@ -7,7 +7,7 @@
 
 /* =================== Static functions =================== */
 
-static void carryAdditionViaIterators(std::vector<size_t>::iterator thisIt, const std::vector<size_t>::iterator &thisEnd, size_t carry) {
+static void carryAdditionViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator &thisEnd, size_t carry) {
     assert(carry != 0ul);
     assert(carry + DigitVector::s_base < std::numeric_limits<size_t>::max());
     for (; thisIt != thisEnd; ++thisIt) {
@@ -21,8 +21,8 @@ static void carryAdditionViaIterators(std::vector<size_t>::iterator thisIt, cons
     assert(false);
 }
 
-static void addViaIterators(std::vector<size_t>::iterator             thisIt,
-                            const std::vector<size_t>::iterator       thisEnd,
+static void addViaIterators(rightToLeftIterator                       thisIt,
+                            const rightToLeftIterator                 thisEnd,
                             std::vector<size_t>::const_iterator       rhsIt,
                             const std::vector<size_t>::const_iterator rhsEnd) {
     assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l); // Always enough space for adding two proper digit vectors
@@ -41,11 +41,14 @@ static void addViaIterators(std::vector<size_t>::iterator             thisIt,
     }
 }
 
-static void addMultipleViaIterators(std::vector<size_t>::iterator             thisIt,
-                                    const std::vector<size_t>::iterator       thisEnd,
+static void addMultipleViaIterators(rightToLeftIterator                       thisIt,
+                                    const rightToLeftIterator                 thisEnd,
                                     std::vector<size_t>::const_iterator       rhsIt,
                                     const std::vector<size_t>::const_iterator rhsEnd,
                                     const size_t                              multiplier) {
+    if (multiplier == 0ul) {
+        return;
+    }
     assert(multiplier < DigitVector::s_base);
     assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l); // Always enough space for adding two proper digit vectors
     size_t carry = 0ul;
@@ -63,8 +66,8 @@ static void addMultipleViaIterators(std::vector<size_t>::iterator             th
     }
 }
 
-static void subtractViaIterators(std::vector<size_t>::iterator             thisIt,
-                                 const std::vector<size_t>::iterator       thisEnd,
+static void subtractViaIterators(rightToLeftIterator                       thisIt,
+                                 const rightToLeftIterator                 thisEnd,
                                  std::vector<size_t>::const_iterator       rhsIt,
                                  const std::vector<size_t>::const_iterator rhsEnd) {
     assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd));
@@ -92,11 +95,23 @@ static void subtractViaIterators(std::vector<size_t>::iterator             thisI
     }
 }
 
-static bool lessThanShiftedRhsViaIterators(std::vector<size_t>::const_reverse_iterator        thisIt,
-                                           const std::vector<size_t>::const_reverse_iterator &thisEnd,
-                                           std::vector<size_t>::const_reverse_iterator        rhsIt,
-                                           const std::vector<size_t>::const_reverse_iterator &rhsEnd,
-                                           const size_t                                       trailingZeroesOfRhs) {
+static void multiplyViaIterators(rightToLeftIterator             thisIt,
+                                 const rightToLeftIterator &     thisEnd,
+                                 rightToLeftConstIterator        rhsIt,
+                                 const rightToLeftConstIterator &rhsEnd,
+                                 rightToLeftConstIterator        copyIt,
+                                 const rightToLeftConstIterator &copyEnd) {
+    for (size_t i = 0; rhsIt != rhsEnd; ++i) {
+        addMultipleViaIterators(thisIt + i, thisEnd, copyIt, copyEnd, *rhsIt);
+        ++rhsIt;
+    }
+}
+
+static bool lessThanShiftedRhsViaIterators(leftToRightConstIterator        thisIt,
+                                           const leftToRightConstIterator &thisEnd,
+                                           leftToRightConstIterator        rhsIt,
+                                           const leftToRightConstIterator &rhsEnd,
+                                           const size_t                    trailingZeroesOfRhs) {
     if (std::distance(thisIt, thisEnd) != std::distance(rhsIt, rhsEnd) + trailingZeroesOfRhs) {
         return std::distance(thisIt, thisEnd) < std::distance(rhsIt, rhsEnd) + trailingZeroesOfRhs;
     }
@@ -109,17 +124,17 @@ static bool lessThanShiftedRhsViaIterators(std::vector<size_t>::const_reverse_it
     return false;
 }
 
-static bool lessThanViaIterators(const std::vector<size_t>::const_reverse_iterator &thisIt,
-                                 const std::vector<size_t>::const_reverse_iterator &thisEnd,
-                                 const std::vector<size_t>::const_reverse_iterator &rhsIt,
-                                 const std::vector<size_t>::const_reverse_iterator &rhsEnd) {
+static bool lessThanViaIterators(const leftToRightConstIterator &thisIt,
+                                 const leftToRightConstIterator &thisEnd,
+                                 const leftToRightConstIterator &rhsIt,
+                                 const leftToRightConstIterator &rhsEnd) {
     return lessThanShiftedRhsViaIterators(thisIt, thisEnd, rhsIt, rhsEnd, 0ul);
 }
 
-static bool greaterThanViaIterators(const std::vector<size_t>::const_reverse_iterator &thisIt,
-                                    const std::vector<size_t>::const_reverse_iterator &thisEnd,
-                                    const std::vector<size_t>::const_reverse_iterator &rhsIt,
-                                    const std::vector<size_t>::const_reverse_iterator &rhsEnd) {
+static bool greaterThanViaIterators(const leftToRightConstIterator &thisIt,
+                                    const leftToRightConstIterator &thisEnd,
+                                    const leftToRightConstIterator &rhsIt,
+                                    const leftToRightConstIterator &rhsEnd) {
     return lessThanViaIterators(rhsIt, rhsEnd, thisIt, thisEnd);
 }
 
@@ -149,13 +164,24 @@ static size_t modPower(T base, T exponent, size_t mod) {
     return copy % mod;
 }
 
+void bubbleViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator &thisEnd) {
+    auto next = thisIt + 1;
+
+    for (; next != thisEnd; ++thisIt, ++next) {
+        if (*thisIt >= DigitVector::s_base) {
+            *next += *thisIt / DigitVector::s_base;
+            *thisIt %= DigitVector::s_base;
+        }
+    }
+}
+
 /* =================== Friend functions =================== */
 
-size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &leftToRightConstIt,
-                          const std::vector<size_t>::const_reverse_iterator &leftToRightConstEnd,
-                          const std::vector<size_t>::iterator &              rightToLeftIt,
-                          const std::vector<size_t>::iterator &              rightToLeftEnd,
-                          const BigUnsignedInt &                             divisor) {
+size_t divisionSubRoutine(const leftToRightConstIterator &leftToRightConstIt,
+                          const leftToRightConstIterator &leftToRightConstEnd,
+                          const rightToLeftIterator &     rightToLeftIt,
+                          const rightToLeftIterator &     rightToLeftEnd,
+                          const BigUnsignedInt &          divisor) {
     if (lessThanViaIterators(leftToRightConstIt, leftToRightConstEnd, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd())) {
         return 0ul;
     }
@@ -206,6 +232,18 @@ BigUnsignedInt longDivision(BigUnsignedInt &dividend, const BigUnsignedInt &divi
     }
 }
 
+void resizeToFitVector(std::vector<size_t> &digits) {
+    auto it = digits.rbegin();
+    for (; it != digits.rend() && *it == 0ul; ++it)
+        ;
+
+    digits.resize(std::distance(it, digits.rend()));
+
+    if (digits.empty()) {
+        digits = {0ul};
+    }
+}
+
 BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const BigUnsignedInt &divisor) {
     assert(divisor <= dividend);
     assert(divisor.mostSignificantDigit() * 2ul >= BigUnsignedInt::s_base);
@@ -243,7 +281,8 @@ BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const
                                                 dividend.rightToLeftEnd(),
                                                 divisor);
     }
-
+    bubbleViaIterators(divisorDigits.begin(), divisorDigits.end());
+    resizeToFitVector(divisorDigits);
     return BigUnsignedInt(std::move(divisorDigits));
 }
 
@@ -302,7 +341,6 @@ BigUnsignedInt::BigUnsignedInt(std::vector<size_t> &&digits) : DigitVector(std::
     if (m_digits.empty()) {
         init(0);
     }
-    bubble();
 }
 
 BigUnsignedInt::BigUnsignedInt(const BigUnsignedInt &other)
@@ -372,15 +410,7 @@ bool BigUnsignedInt::operator!=(const BigUnsignedInt &rhs) const {
 }
 
 void BigUnsignedInt::resizeToFit() {
-    auto it = leftToRightConstBegin();
-    for (; it != leftToRightConstEnd() && *it == 0ul; ++it)
-        ;
-
-    m_digits.resize(std::distance(it, leftToRightConstEnd()));
-
-    if (m_digits.empty()) {
-        m_digits = {0ul};
-    }
+    resizeToFitVector(m_digits);
 }
 
 BigUnsignedInt &BigUnsignedInt::operator=(const BigUnsignedInt &rhs) {
@@ -411,10 +441,10 @@ bool BigUnsignedInt::operator>(const BigUnsignedInt &rhs) const {
     return rhs < *this;
 }
 
-bool greaterOrEqualViaIterators(const std::vector<size_t>::const_reverse_iterator &thisIt,
-                                const std::vector<size_t>::const_reverse_iterator &thisEnd,
-                                const std::vector<size_t>::const_reverse_iterator &rhsIt,
-                                const std::vector<size_t>::const_reverse_iterator &rhsEnd) {
+bool greaterOrEqualViaIterators(const leftToRightConstIterator &thisIt,
+                                const leftToRightConstIterator &thisEnd,
+                                const leftToRightConstIterator &rhsIt,
+                                const leftToRightConstIterator &rhsEnd) {
     return !(lessThanViaIterators(thisIt, thisEnd, rhsIt, rhsEnd));
 }
 
@@ -439,24 +469,60 @@ bool BigUnsignedInt::operator>=(const BigUnsignedInt &rhs) const {
     return !(*this < rhs);
 }
 
+void karatsubaMultiply(rightToLeftIterator             thisIt,
+                       const rightToLeftIterator &     thisEnd,
+                       rightToLeftConstIterator        rhsIt,
+                       const rightToLeftConstIterator &rhsEnd,
+                       rightToLeftConstIterator        copyIt,
+                       const rightToLeftConstIterator &copyEnd) {
+    const size_t m = std::min(copyEnd - copyIt, rhsEnd - rhsIt);
+
+    if (m < 220ul) {
+        multiplyViaIterators(thisIt, thisEnd, rhsIt, rhsEnd, copyIt, copyEnd);
+        return;
+    }
+    const size_t splitIndex = m / 2ul;
+
+    BigUnsignedInt low1(std::vector<size_t>(copyIt, copyIt + splitIndex));
+    BigUnsignedInt high1(std::vector<size_t>(copyIt + splitIndex, copyEnd));
+    BigUnsignedInt low2(std::vector<size_t>(rhsIt, rhsIt + splitIndex));
+    BigUnsignedInt high2(std::vector<size_t>(rhsIt + splitIndex, rhsEnd));
+
+    const auto z0 = low1 * low2;
+    const auto z2 = high1 * high2;
+
+    addViaIterators(thisIt, thisEnd, z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
+    addViaIterators(thisIt + 2ul * splitIndex, thisEnd, z2.rightToLeftConstBegin(), z2.rightToLeftConstEnd());
+
+    high1 += low1;
+    high2 += low2;
+
+    auto z1 = high1 * high2 - (z2 + z0);
+
+    addViaIterators(thisIt + splitIndex, thisEnd, z1.rightToLeftConstBegin(), z1.rightToLeftConstEnd());
+}
+
 BigUnsignedInt &BigUnsignedInt::operator*=(const BigUnsignedInt &rhs) {
+    assert(isWellFormed());
+    assert(rhs.isWellFormed());
     if (this == &rhs) {
         square();
         return *this;
     }
-    assert(isWellFormed());
-    assert(rhs.isWellFormed());
     const auto copy = *this;
-    this->m_digits.reserve(digitCount() + rhs.digitCount() + 1);
-    *this *= rhs.leastSignificantDigit();
-
-    auto rhsIt = rhs.rightToLeftConstBegin() + 1ul;
-    for (size_t i = 1; i != rhs.digitCount(); ++i) {
-        m_digits.resize(std::max(copy.digitCount() + i, digitCount()) + 1);
-        addMultipleViaIterators(rightToLeftBegin() + i, rightToLeftEnd(), copy.rightToLeftConstBegin(), copy.rightToLeftConstEnd(), *rhsIt);
-        ++rhsIt;
+    this->m_digits.resize(digitCount() + rhs.digitCount() + 1);
+    for (auto thisIt = leftToRightBegin(); thisIt != leftToRightEnd(); ++thisIt) {
+        *thisIt = 0ul;
     }
+
+    karatsubaMultiply(rightToLeftBegin(),
+                      rightToLeftEnd(),
+                      rhs.rightToLeftConstBegin(),
+                      rhs.rightToLeftConstEnd(),
+                      copy.rightToLeftConstBegin(),
+                      copy.rightToLeftConstEnd());
     resizeToFit();
+    //    std::cout << *this << '\n';
     return *this;
 }
 

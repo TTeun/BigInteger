@@ -5,7 +5,7 @@
 
 #include <ostream>
 
-class BigUnsignedInt : private DigitVector {
+class BigUnsignedInt : public DigitVector {
 
 public:
     BigUnsignedInt();
@@ -88,6 +88,13 @@ private:
     friend BigUnsignedInt longDivision(BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
 
     friend BigUnsignedInt longDivisionAfterAdjustingDivisor(BigUnsignedInt &dividend, const BigUnsignedInt &divisor);
+
+    friend void karatsubaMultiply(rightToLeftIterator             thisIt,
+                                  const rightToLeftIterator &     thisEnd,
+                                  rightToLeftConstIterator        rhsIt,
+                                  const rightToLeftConstIterator &rhsEnd,
+                                  rightToLeftConstIterator        copyIt,
+                                  const rightToLeftConstIterator &copyEnd);
 
     void square();
 

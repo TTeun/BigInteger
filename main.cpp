@@ -30,20 +30,25 @@ double timeMultiplication(size_t n);
 double timeDivision(size_t n);
 
 int main() {
+//    BigUnsignedInt b(32);
+//    BigUnsignedInt c(17);
+//    b *= c;
+//
+//    return 0;
+
+//    testMultiplication(250000ul);
+//    testAddition(10000ul);
+//    testSubtraction();
+//    testDivision(1000ul);
+//    testFixedDivision();
+//    testFixedModulo();
+//    testSumNaturalNumbers();
 
     std::cout << "Addition:\t\t\t" << timeAddition(100) << " seconds\n";
     std::cout << "Multiplication:\t\t" << timeMultiplication(50) << " seconds\n";
     std::cout << "Division:\t\t\t" << timeDivision(50) << " seconds\n";
     std::cout << "1000!:\t\t\t\t" << timeFactorial() << " seconds\n";
     std::cout << "2^(2000):\t\t\t" << timePower() << " seconds\n";
-
-    testMultiplication(250000ul);
-    testAddition(10000ul);
-    testSubtraction();
-    testDivision(1000ul);
-    testFixedDivision();
-    testFixedModulo();
-    testSumNaturalNumbers();
 }
 
 void testDivision(size_t n) {
@@ -139,11 +144,14 @@ double timePower() {
 
 void testMultiplication(size_t n) {
     for (size_t dummy = 0; dummy != n; ++dummy) {
-        size_t a = rand() % std::numeric_limits<size_t>::max();
-        size_t b = rand() % std::numeric_limits<size_t>::max();
+        size_t     a = rand() % std::numeric_limits<size_t>::max();
+        size_t     b = rand() % std::numeric_limits<size_t>::max();
+        const auto r = a * b;
+        const auto k = BigUnsignedInt(a) * BigUnsignedInt(b);
         assert(BigUnsignedInt(a) * BigUnsignedInt(b) == a * b);
     }
 }
+
 void testSumNaturalNumbers() {
     BigUnsignedInt sumOfNaturalNumbers("5000050000");
     BigUnsignedInt b(0);
@@ -188,8 +196,8 @@ void testSubtraction() {
 double timeAddition(size_t n) {
     Timer timer;
     for (size_t i = 0; i != n; ++i) {
-        const auto a = BigUnsignedInt::createRandomFromDecimalDigits(1000ul);
-        const auto b = BigUnsignedInt::createRandomFromDecimalDigits(1000ul);
+        const auto a = BigUnsignedInt::createRandomFromDecimalDigits(10000ul);
+        const auto b = BigUnsignedInt::createRandomFromDecimalDigits(10000ul);
         const auto c = a + b;
     }
     return timer.elapsed() / n;
@@ -198,8 +206,8 @@ double timeAddition(size_t n) {
 double timeMultiplication(size_t n) {
     Timer timer;
     for (size_t i = 0; i != n; ++i) {
-        const auto a = BigUnsignedInt::createRandomFromDecimalDigits(1000ul);
-        const auto b = BigUnsignedInt::createRandomFromDecimalDigits(1000ul);
+        const auto a = BigUnsignedInt::createRandomFromDecimalDigits(10000ul);
+        const auto b = BigUnsignedInt::createRandomFromDecimalDigits(10000ul);
         const auto c = a * b;
     }
     return timer.elapsed() / n;
@@ -208,8 +216,8 @@ double timeMultiplication(size_t n) {
 double timeDivision(size_t n) {
     Timer timer;
     for (size_t i = 0; i != n; ++i) {
-        const auto a = BigUnsignedInt::createRandomFromDecimalDigits(1500ul);
-        const auto b = BigUnsignedInt::createRandomFromDecimalDigits(1000ul);
+        const auto a = BigUnsignedInt::createRandomFromDecimalDigits(15000ul);
+        const auto b = BigUnsignedInt::createRandomFromDecimalDigits(10000ul);
         const auto c = a / b;
     }
     return timer.elapsed() / n;

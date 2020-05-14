@@ -20,35 +20,35 @@ size_t DigitVector::mostSignificantDigit() const {
     return m_digits.back();
 }
 
-std::vector<size_t>::reverse_iterator DigitVector::leftToRightBegin() {
+leftToRightIterator DigitVector::leftToRightBegin() {
     return m_digits.rbegin();
 }
 
-std::vector<size_t>::reverse_iterator DigitVector::leftToRightEnd() {
+leftToRightIterator DigitVector::leftToRightEnd() {
     return m_digits.rend();
 }
 
-std::vector<size_t>::iterator DigitVector::rightToLeftBegin() {
+rightToLeftIterator DigitVector::rightToLeftBegin() {
     return m_digits.begin();
 }
 
-std::vector<size_t>::iterator DigitVector::rightToLeftEnd() {
+rightToLeftIterator DigitVector::rightToLeftEnd() {
     return m_digits.end();
 }
 
-std::vector<size_t>::const_reverse_iterator DigitVector::leftToRightConstBegin() const {
+leftToRightConstIterator DigitVector::leftToRightConstBegin() const {
     return m_digits.crbegin();
 }
 
-std::vector<size_t>::const_reverse_iterator DigitVector::leftToRightConstEnd() const {
+leftToRightConstIterator DigitVector::leftToRightConstEnd() const {
     return m_digits.crend();
 }
 
-std::vector<size_t>::const_iterator DigitVector::rightToLeftConstBegin() const {
+rightToLeftConstIterator DigitVector::rightToLeftConstBegin() const {
     return m_digits.cbegin();
 }
 
-std::vector<size_t>::const_iterator DigitVector::rightToLeftConstEnd() const {
+rightToLeftConstIterator DigitVector::rightToLeftConstEnd() const {
     return m_digits.cend();
 }
 
