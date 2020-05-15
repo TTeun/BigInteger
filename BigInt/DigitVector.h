@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <limits>
+#include <ostream>
 #include <vector>
 
 typedef std::vector<size_t>::reverse_iterator       leftToRightIterator;
@@ -13,20 +14,22 @@ typedef std::vector<size_t>::const_iterator         rightToLeftConstIterator;
 class DigitVector {
 
 public:
-    static const size_t s_base =
-        static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
-    //    static const size_t s_base = 20ul;
+    //        static const size_t s_base =
+    //            static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
+
+    static const size_t s_base = 1000000000ul;
+    //        static const size_t s_base = 10ul;
 
     static const size_t s_maxDigit = s_base - 1ul;
 
     size_t digitCount() const;
 
 protected:
-    size_t digitAt(size_t index) const;
-
     DigitVector();
 
     DigitVector(std::vector<size_t> &&digits);
+
+    size_t digitAt(size_t index) const;
 
     void shift(size_t shiftAmount);
 
@@ -53,6 +56,8 @@ protected:
     rightToLeftConstIterator rightToLeftConstEnd() const;
 
     bool isCorrectlySized() const;
+
+    friend void swap(DigitVector &a, DigitVector &b);
 
     std::vector<size_t> m_digits;
 };
