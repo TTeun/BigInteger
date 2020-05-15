@@ -115,15 +115,17 @@ void BigUIntBase::multiplyViaIterators(rightToLeftIterator             resultIt,
                                        const rightToLeftConstIterator &copyEnd) {
     const auto copySize = static_cast<size_t>(copyEnd - copyIt);
     const auto rhsSize  = static_cast<size_t>(rhsEnd - rhsIt);
-    if (std::min(copySize, rhsSize) >= BigUIntBase::s_karatsubaLowerLimit) {
-        karatsubaMultiplyViaIterators(resultIt, resultEnd, rhsIt, rhsEnd, copyIt, copyEnd);
-    } else if (copySize >= BigUIntBase::s_karatsubaLowerLimit) {
-        splitOneMultiplicationViaIterators(resultIt, resultEnd, rhsIt, rhsEnd, copyIt, copyEnd);
-    } else {
+    if (std::max(copySize, rhsSize) < BigUIntBase::s_karatsubaLowerLimit) {
         for (size_t i = 0; rhsIt != rhsEnd; ++i) {
             addMultipleViaIterators(resultIt + i, resultEnd, copyIt, copyEnd, *rhsIt);
             ++rhsIt;
         }
+    } else if (std::min(copySize, rhsSize) >= BigUIntBase::s_karatsubaLowerLimit) {
+        karatsubaMultiplyViaIterators(resultIt, resultEnd, rhsIt, rhsEnd, copyIt, copyEnd);
+    } else if (copySize >= BigUIntBase::s_karatsubaLowerLimit) {
+        splitOneMultiplicationViaIterators(resultIt, resultEnd, rhsIt, rhsEnd, copyIt, copyEnd);
+    } else {
+        splitOneMultiplicationViaIterators(resultIt, resultEnd, copyIt, copyEnd, rhsIt, rhsEnd);
     }
 }
 
@@ -138,14 +140,14 @@ void BigUIntBase::splitOneMultiplicationViaIterators(rightToLeftIterator        
     const size_t splitIndex = m / 2ul;
 
     BigUIntBase z0;
-    z0.resize(splitIndex + (rhsEnd - rhsIt));
+    z0.resize(splitIndex + (rhsEnd - rhsIt) + 1ul);
     multiplyViaIterators(z0.rightToLeftBegin(), z0.rightToLeftEnd(), largeIt, largeIt + splitIndex, rhsIt, rhsEnd);
     z0.resizeToFit();
 
     addViaIterators(resultIt, resultEnd, z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
 
     BigUIntBase z1;
-    z1.resize((largeEnd - (largeIt + splitIndex)) + (rhsEnd - rhsIt));
+    z1.resize((largeEnd - (largeIt + splitIndex)) + (rhsEnd - rhsIt) + 1ul);
     multiplyViaIterators(z1.rightToLeftBegin(), z1.rightToLeftEnd(), largeIt + splitIndex, largeEnd, rhsIt, rhsEnd);
     z1.resizeToFit();
 
