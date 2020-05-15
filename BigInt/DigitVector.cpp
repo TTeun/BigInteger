@@ -80,3 +80,20 @@ void DigitVector::shift(size_t shiftAmount) {
 size_t DigitVector::leastSignificantDigit() const {
     return m_digits.front();
 }
+
+ void DigitVector::resizeToFitVector(std::vector<size_t> &digits) {
+    auto it = digits.rbegin();
+    for (; it != digits.rend() && *it == 0ul; ++it)
+        ;
+
+    digits.resize(static_cast<unsigned long>(std::distance(it, digits.rend())));
+
+    if (digits.empty()) {
+        digits = {0ul};
+    }
+}
+
+
+void DigitVector::resizeToFit() {
+    resizeToFitVector(m_digits);
+}

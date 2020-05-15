@@ -60,7 +60,7 @@ int main() {
     //    std::cout << "Prime finder:\t\t" << timePrime() << " seconds\n";
     std::cout << "Multiplication:\t\t" << timeMultiplication(50) << " seconds\n";
     std::cout << "Addition:\t\t\t" << timeAddition(100) << " seconds\n";
-    std::cout << "Division:\t\t\t" << timeDivision(5) << " seconds\n";
+    std::cout << "Division:\t\t\t" << timeDivision(50) << " seconds\n";
     std::cout << "1000!:\t\t\t\t" << timeFactorial() << " seconds\n";
     std::cout << "2^(2000):\t\t\t" << timePower() << " seconds\n";
 

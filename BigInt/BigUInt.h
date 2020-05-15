@@ -8,9 +8,6 @@
 
 class BigUInt : public BigUIntBase {
 
-private:
-    static const size_t s_karatsubaLowerLimit = 200ul;
-
 public:
     BigUInt();
 
@@ -21,8 +18,6 @@ public:
     BigUInt(size_t val);
 
     BigUInt(const std::string &val);
-
-    BigUInt(rightToLeftConstIterator it, rightToLeftConstIterator endIt);
 
     static BigUInt createRandom(size_t numberOfDigits);
 
@@ -85,14 +80,7 @@ public:
     BigUInt copySuffix(size_t length) const;
 
 private:
-    friend void multiplyViaIterators(rightToLeftIterator             resultIt,
-                                     const rightToLeftIterator &     resultEnd,
-                                     rightToLeftConstIterator        rhsIt,
-                                     const rightToLeftConstIterator &rhsEnd,
-                                     rightToLeftConstIterator        copyIt,
-                                     const rightToLeftConstIterator &copyEnd);
-
-    friend size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &leftToRightConstIt,
+    static size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &leftToRightConstIt,
                                      const std::vector<size_t>::const_reverse_iterator &leftToRightConstEnd,
                                      const std::vector<size_t>::iterator &              rightToLeftIt,
                                      const std::vector<size_t>::iterator &              rightToLeftEnd,
@@ -102,27 +90,10 @@ private:
 
     friend BigUInt longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divisor);
 
-    friend void karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
-                                              const rightToLeftIterator &     resultEnd,
-                                              rightToLeftConstIterator        rhsIt,
-                                              const rightToLeftConstIterator &rhsEnd,
-                                              rightToLeftConstIterator        copyIt,
-                                              const rightToLeftConstIterator &copyEnd);
-
-    friend void splitOneMultiplicationViaIterators(rightToLeftIterator             resultIt,
-                                                   const rightToLeftIterator &     resultEnd,
-                                                   rightToLeftConstIterator        rhsIt,
-                                                   const rightToLeftConstIterator &rhsEnd,
-                                                   rightToLeftConstIterator        largeIt,
-                                                   const rightToLeftConstIterator &largeEnd);
-
     void square();
 
-    void resizeToFit();
 
     void init(size_t val);
-
-    static BigUInt createFromMostSignificantDigit(size_t digit, size_t position);
 
     void bubble(size_t startIndex = 0ul);
 
