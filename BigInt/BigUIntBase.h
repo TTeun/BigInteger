@@ -1,7 +1,3 @@
-//
-// Created by pc on 5/15/20.
-//
-
 #ifndef TEUN_GAME_BIGUINTBASE_H
 #define TEUN_GAME_BIGUINTBASE_H
 
@@ -11,13 +7,23 @@
 
 class BigUIntBase : public DigitVector {
 
-private:
+protected:
     static const size_t s_karatsubaLowerLimit = 200ul;
+
+    friend void karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
+                                              const rightToLeftIterator &     resultEnd,
+                                              rightToLeftConstIterator        rhsIt,
+                                              const rightToLeftConstIterator &rhsEnd,
+                                              rightToLeftConstIterator        copyIt,
+                                              const rightToLeftConstIterator &copyEnd);
 
 public:
     BigUIntBase();
 
     BigUIntBase(std::vector<size_t> &&digits);
+
+    BigUIntBase(rightToLeftConstIterator it, rightToLeftConstIterator endIt);
+
 };
 
 #endif // TEUN_GAME_BIGUINTBASE_H

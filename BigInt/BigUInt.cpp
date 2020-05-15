@@ -312,46 +312,46 @@ BigUInt power(const BigUInt &base, size_t exponent) {
     return copy;
 }
 
-void karatsubaMultiplyViaIterators(rightToLeftIterator             thisIt,
-                                   const rightToLeftIterator &     thisEnd,
+void karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
+                                   const rightToLeftIterator &     resultEnd,
                                    rightToLeftConstIterator        rhsIt,
                                    const rightToLeftConstIterator &rhsEnd,
-                                   rightToLeftIterator             copyIt,
-                                   const rightToLeftIterator &     copyEnd);
+                                   rightToLeftConstIterator        copyIt,
+                                   const rightToLeftConstIterator &copyEnd);
 
-void splitOneMultiplicationViaIterators(rightToLeftIterator             thisIt,
-                                        const rightToLeftIterator &     thisEnd,
+void splitOneMultiplicationViaIterators(rightToLeftIterator             resultIt,
+                                        const rightToLeftIterator &     resultEnd,
                                         rightToLeftConstIterator        rhsIt,
                                         const rightToLeftConstIterator &rhsEnd,
-                                        rightToLeftIterator             largeIt,
-                                        const rightToLeftIterator &     largeEnd);
+                                        rightToLeftConstIterator        largeIt,
+                                        const rightToLeftConstIterator &largeEnd);
 
-void multiplyViaIterators(rightToLeftIterator             thisIt,
-                          const rightToLeftIterator &     thisEnd,
+void multiplyViaIterators(rightToLeftIterator             resultIt,
+                          const rightToLeftIterator &     resultEnd,
                           rightToLeftConstIterator        rhsIt,
                           const rightToLeftConstIterator &rhsEnd,
-                          rightToLeftIterator             copyIt,
-                          const rightToLeftIterator &     copyEnd) {
+                          rightToLeftConstIterator        copyIt,
+                          const rightToLeftConstIterator &copyEnd) {
     const auto copySize = static_cast<size_t>(copyEnd - copyIt);
     const auto rhsSize  = static_cast<size_t>(rhsEnd - rhsIt);
     if (std::min(copySize, rhsSize) >= BigUInt::s_karatsubaLowerLimit) {
-        karatsubaMultiplyViaIterators(thisIt, thisEnd, rhsIt, rhsEnd, copyIt, copyEnd);
+        karatsubaMultiplyViaIterators(resultIt, resultEnd, rhsIt, rhsEnd, copyIt, copyEnd);
     } else if (copySize >= BigUInt::s_karatsubaLowerLimit) {
-        splitOneMultiplicationViaIterators(thisIt, thisEnd, rhsIt, rhsEnd, copyIt, copyEnd);
+        splitOneMultiplicationViaIterators(resultIt, resultEnd, rhsIt, rhsEnd, copyIt, copyEnd);
     } else {
         for (size_t i = 0; rhsIt != rhsEnd; ++i) {
-            addMultipleViaIterators(thisIt + i, thisEnd, copyIt, copyEnd, *rhsIt);
+            addMultipleViaIterators(resultIt + i, resultEnd, copyIt, copyEnd, *rhsIt);
             ++rhsIt;
         }
     }
 }
 
-void splitOneMultiplicationViaIterators(rightToLeftIterator             thisIt,
-                                        const rightToLeftIterator &     thisEnd,
+void splitOneMultiplicationViaIterators(rightToLeftIterator             resultIt,
+                                        const rightToLeftIterator &     resultEnd,
                                         rightToLeftConstIterator        rhsIt,
                                         const rightToLeftConstIterator &rhsEnd,
-                                        rightToLeftIterator             largeIt,
-                                        const rightToLeftIterator &     largeEnd) {
+                                        rightToLeftConstIterator        largeIt,
+                                        const rightToLeftConstIterator &largeEnd) {
     const auto m = static_cast<size_t>(largeEnd - largeIt);
     assert(m >= BigUInt::s_karatsubaLowerLimit);
     const size_t splitIndex = m / 2ul;
@@ -361,35 +361,64 @@ void splitOneMultiplicationViaIterators(rightToLeftIterator             thisIt,
     BigUInt high(largeIt + splitIndex, largeEnd);
 
     low *= rhs;
-    addViaIterators(thisIt, thisEnd, low.rightToLeftConstBegin(), low.rightToLeftConstEnd());
+    addViaIterators(resultIt, resultEnd, low.rightToLeftConstBegin(), low.rightToLeftConstEnd());
 
     high *= rhs;
-    addViaIterators(thisIt + splitIndex, thisEnd, high.rightToLeftConstBegin(), high.rightToLeftConstEnd());
+    addViaIterators(resultIt + splitIndex, resultEnd, high.rightToLeftConstBegin(), high.rightToLeftConstEnd());
 }
 
-void karatsubaMultiplyViaIterators(rightToLeftIterator             thisIt,
-                                   const rightToLeftIterator &     thisEnd,
+void karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
+                                   const rightToLeftIterator &     resultEnd,
                                    rightToLeftConstIterator        rhsIt,
                                    const rightToLeftConstIterator &rhsEnd,
-                                   rightToLeftIterator             copyIt,
-                                   const rightToLeftIterator &     copyEnd) {
+                                   rightToLeftConstIterator        copyIt,
+                                   const rightToLeftConstIterator &copyEnd) {
     const auto m = static_cast<size_t>(std::min(copyEnd - copyIt, rhsEnd - rhsIt));
     assert(m >= BigUInt::s_karatsubaLowerLimit);
     const size_t splitIndex = m / 2ul;
 
-    const BigUInt low1(copyIt, copyIt + splitIndex);
-    const BigUInt low2(rhsIt, rhsIt + splitIndex);
-    const BigUInt high1(copyIt + splitIndex, copyEnd);
-    const BigUInt high2(rhsIt + splitIndex, rhsEnd);
+    BigUIntBase high1(copyIt + splitIndex, copyEnd);
+    BigUIntBase high2(rhsIt + splitIndex, rhsEnd);
 
-    const auto z0 = low1 * low2;
-    const auto z2 = high1 * high2;
-    const auto z1 = (high1 + low1) * (high2 + low2) - (z2 + z0);
+    BigUIntBase z0;
+    z0.m_digits.resize(2ul * splitIndex + 1ul);
 
-    addViaIterators(thisIt, thisEnd, z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
-    addViaIterators(thisIt + 2ul * splitIndex, thisEnd, z2.rightToLeftConstBegin(), z2.rightToLeftConstEnd());
+    BigUIntBase z2;
+    z2.m_digits.resize((rhsEnd - rhsIt - splitIndex) + (copyEnd - copyIt - splitIndex) + 1ul);
 
-    addViaIterators(thisIt + splitIndex, thisEnd, z1.rightToLeftConstBegin(), z1.rightToLeftConstEnd());
+    multiplyViaIterators(
+        z0.rightToLeftBegin(), z0.rightToLeftEnd(), rhsIt, rhsIt + splitIndex, copyIt, copyIt + splitIndex); // z0 = low1 * low2;
+    resizeToFitVector(z0.m_digits);
+
+    multiplyViaIterators(
+        z2.rightToLeftBegin(), z2.rightToLeftEnd(), rhsIt + splitIndex, rhsEnd, copyIt + splitIndex, copyEnd); // z2 = high1 * high2;
+    resizeToFitVector(z2.m_digits);
+
+    high1.m_digits.resize(high1.m_digits.size() + 1ul);
+    high2.m_digits.resize(high2.m_digits.size() + 1ul);
+
+    addViaIterators(high1.rightToLeftBegin(), high1.rightToLeftEnd(), copyIt, copyIt + splitIndex);
+    addViaIterators(high2.rightToLeftBegin(), high2.rightToLeftEnd(), rhsIt, rhsIt + splitIndex);
+
+    BigUIntBase z1;
+    z1.m_digits.resize((rhsEnd - rhsIt - splitIndex) + (copyEnd - copyIt - splitIndex) + 3ul);
+
+    resizeToFitVector(high1.m_digits);
+    resizeToFitVector(high2.m_digits);
+
+    multiplyViaIterators(z1.rightToLeftBegin(),
+                         z1.rightToLeftEnd(),
+                         high1.rightToLeftConstBegin(),
+                         high1.rightToLeftConstEnd(),
+                         high2.rightToLeftConstBegin(),
+                         high2.rightToLeftConstEnd()); // z1 = (high1 + low1) * (high2 + low2);
+
+    subtractViaIterators(z1.rightToLeftBegin(), z1.rightToLeftEnd(), z2.rightToLeftConstBegin(), z2.rightToLeftConstEnd());
+    subtractViaIterators(z1.rightToLeftBegin(), z1.rightToLeftEnd(), z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
+
+    addViaIterators(resultIt, resultEnd, z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
+    addViaIterators(resultIt + 2ul * splitIndex, resultEnd, z2.rightToLeftConstBegin(), z2.rightToLeftConstEnd());
+    addViaIterators(resultIt + splitIndex, resultEnd, z1.rightToLeftConstBegin(), z1.rightToLeftConstEnd());
 }
 
 /* =================== Member functions =================== */
@@ -438,7 +467,7 @@ BigUInt::BigUInt(const std::string &val) {
     assert(isWellFormed());
 }
 
-BigUInt::BigUInt(rightToLeftConstIterator it, rightToLeftConstIterator endIt) : BigUIntBase({it, endIt}) {
+BigUInt::BigUInt(rightToLeftConstIterator it, rightToLeftConstIterator endIt) : BigUIntBase(std::vector<size_t>{it, endIt}) {
     if (it == endIt) {
         m_digits = {0ul};
     } else {

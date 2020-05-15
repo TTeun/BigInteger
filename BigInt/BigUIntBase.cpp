@@ -15,3 +15,5 @@ BigUIntBase::BigUIntBase() {
 
 BigUIntBase::BigUIntBase(std::vector<size_t> &&digits) : DigitVector(std::move(digits)) {
 }
+BigUIntBase::BigUIntBase(rightToLeftConstIterator it, rightToLeftConstIterator endIt) : DigitVector({it, endIt}) {
+}

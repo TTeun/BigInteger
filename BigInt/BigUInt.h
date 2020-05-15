@@ -85,12 +85,12 @@ public:
     BigUInt copySuffix(size_t length) const;
 
 private:
-    friend void multiplyViaIterators(rightToLeftIterator             thisIt,
-                                     const rightToLeftIterator &     thisEnd,
+    friend void multiplyViaIterators(rightToLeftIterator             resultIt,
+                                     const rightToLeftIterator &     resultEnd,
                                      rightToLeftConstIterator        rhsIt,
                                      const rightToLeftConstIterator &rhsEnd,
-                                     rightToLeftIterator             copyIt,
-                                     const rightToLeftIterator &     copyEnd);
+                                     rightToLeftConstIterator        copyIt,
+                                     const rightToLeftConstIterator &copyEnd);
 
     friend size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &leftToRightConstIt,
                                      const std::vector<size_t>::const_reverse_iterator &leftToRightConstEnd,
@@ -102,19 +102,19 @@ private:
 
     friend BigUInt longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divisor);
 
-    friend void karatsubaMultiplyViaIterators(rightToLeftIterator             thisIt,
-                                              const rightToLeftIterator &     thisEnd,
+    friend void karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
+                                              const rightToLeftIterator &     resultEnd,
                                               rightToLeftConstIterator        rhsIt,
                                               const rightToLeftConstIterator &rhsEnd,
-                                              rightToLeftIterator             copyIt,
-                                              const rightToLeftIterator &     copyEnd);
+                                              rightToLeftConstIterator        copyIt,
+                                              const rightToLeftConstIterator &copyEnd);
 
-    friend void splitOneMultiplicationViaIterators(rightToLeftIterator             thisIt,
-                                                   const rightToLeftIterator &     thisEnd,
+    friend void splitOneMultiplicationViaIterators(rightToLeftIterator             resultIt,
+                                                   const rightToLeftIterator &     resultEnd,
                                                    rightToLeftConstIterator        rhsIt,
                                                    const rightToLeftConstIterator &rhsEnd,
-                                                   rightToLeftIterator             largeIt,
-                                                   const rightToLeftIterator &     largeEnd);
+                                                   rightToLeftConstIterator        largeIt,
+                                                   const rightToLeftConstIterator &largeEnd);
 
     void square();
 
