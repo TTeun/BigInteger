@@ -356,15 +356,19 @@ void splitOneMultiplicationViaIterators(rightToLeftIterator             resultIt
     assert(m >= BigUInt::s_karatsubaLowerLimit);
     const size_t splitIndex = m / 2ul;
 
-    BigUInt rhs(rhsIt, rhsEnd);
-    BigUInt low(largeIt, largeIt + splitIndex);
-    BigUInt high(largeIt + splitIndex, largeEnd);
+    BigUIntBase z0;
+    z0.resize(splitIndex + (rhsEnd - rhsIt));
+    multiplyViaIterators(z0.rightToLeftBegin(), z0.rightToLeftEnd(), largeIt, largeIt + splitIndex, rhsIt, rhsEnd);
+    resizeToFitVector(z0.m_digits);
 
-    low *= rhs;
-    addViaIterators(resultIt, resultEnd, low.rightToLeftConstBegin(), low.rightToLeftConstEnd());
+    addViaIterators(resultIt, resultEnd, z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
 
-    high *= rhs;
-    addViaIterators(resultIt + splitIndex, resultEnd, high.rightToLeftConstBegin(), high.rightToLeftConstEnd());
+    BigUIntBase z1;
+    z1.resize((largeEnd - (largeIt + splitIndex)) + (rhsEnd - rhsIt));
+    multiplyViaIterators(z1.rightToLeftBegin(), z1.rightToLeftEnd(), largeIt + splitIndex, largeEnd, rhsIt, rhsEnd);
+    resizeToFitVector(z1.m_digits);
+
+    addViaIterators(resultIt + splitIndex, resultEnd, z1.rightToLeftConstBegin(), z1.rightToLeftConstEnd());
 }
 
 void karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
@@ -381,27 +385,25 @@ void karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
     BigUIntBase high2(rhsIt + splitIndex, rhsEnd);
 
     BigUIntBase z0;
-    z0.m_digits.resize(2ul * splitIndex + 1ul);
-
-    BigUIntBase z2;
-    z2.m_digits.resize((rhsEnd - rhsIt - splitIndex) + (copyEnd - copyIt - splitIndex) + 1ul);
-
+    z0.resize(2ul * splitIndex + 1ul);
     multiplyViaIterators(
         z0.rightToLeftBegin(), z0.rightToLeftEnd(), rhsIt, rhsIt + splitIndex, copyIt, copyIt + splitIndex); // z0 = low1 * low2;
     resizeToFitVector(z0.m_digits);
 
+    BigUIntBase z2;
+    z2.resize((rhsEnd - rhsIt - splitIndex) + (copyEnd - copyIt - splitIndex) + 1ul);
     multiplyViaIterators(
         z2.rightToLeftBegin(), z2.rightToLeftEnd(), rhsIt + splitIndex, rhsEnd, copyIt + splitIndex, copyEnd); // z2 = high1 * high2;
     resizeToFitVector(z2.m_digits);
 
-    high1.m_digits.resize(high1.m_digits.size() + 1ul);
-    high2.m_digits.resize(high2.m_digits.size() + 1ul);
+    high1.resize(high1.digitCount() + 1ul);
+    high2.resize(high2.digitCount() + 1ul);
 
     addViaIterators(high1.rightToLeftBegin(), high1.rightToLeftEnd(), copyIt, copyIt + splitIndex);
     addViaIterators(high2.rightToLeftBegin(), high2.rightToLeftEnd(), rhsIt, rhsIt + splitIndex);
 
     BigUIntBase z1;
-    z1.m_digits.resize((rhsEnd - rhsIt - splitIndex) + (copyEnd - copyIt - splitIndex) + 3ul);
+    z1.resize((rhsEnd - rhsIt - splitIndex) + (copyEnd - copyIt - splitIndex) + 3ul);
 
     resizeToFitVector(high1.m_digits);
     resizeToFitVector(high2.m_digits);
@@ -490,7 +492,7 @@ void BigUInt::bubble(size_t startIndex) {
 
     if (mostSignificantDigit() >= s_base) {
         const size_t continueIndex = digitCount() - 1ul;
-        m_digits.resize(1ul + static_cast<size_t>(digitCount() + std::log(mostSignificantDigit()) / std::log(s_base)));
+        resize(1ul + static_cast<size_t>(digitCount() + std::log(mostSignificantDigit()) / std::log(s_base)));
         bubble(continueIndex);
     }
     resizeToFit();
@@ -527,10 +529,12 @@ BigUInt &BigUInt::operator=(const BigUInt &rhs) {
 }
 
 BigUInt &BigUInt::operator+=(const BigUInt &rhs) {
-    m_digits.resize(std::max(digitCount(), rhs.digitCount()) + 1ul);
+    assert(isWellFormed() && rhs.isWellFormed());
+
+    resize(std::max(digitCount(), rhs.digitCount()) + 1ul);
     addViaIterators(rightToLeftBegin(), rightToLeftEnd(), rhs.rightToLeftConstBegin(), rhs.rightToLeftConstEnd());
-    if (m_digits.back() == 0ul) {
-        m_digits.resize(m_digits.size() - 1ul);
+    if (mostSignificantDigit() == 0ul) {
+        resize(digitCount() - 1ul);
     }
 
     return *this;
@@ -544,13 +548,6 @@ bool BigUInt::operator<(const BigUInt &rhs) const {
 
 bool BigUInt::operator>(const BigUInt &rhs) const {
     return rhs < *this;
-}
-
-bool greaterOrEqualViaIterators(const leftToRightConstIterator &thisIt,
-                                const leftToRightConstIterator &thisEnd,
-                                const leftToRightConstIterator &rhsIt,
-                                const leftToRightConstIterator &rhsEnd) {
-    return !(lessThanViaIterators(thisIt, thisEnd, rhsIt, rhsEnd));
 }
 
 bool BigUInt::operator<=(const BigUInt &rhs) const {
@@ -583,7 +580,7 @@ BigUInt &BigUInt::operator*=(const BigUInt &rhs) {
     }
     auto copy = *this;
 
-    this->m_digits.resize(digitCount() + rhs.digitCount() + 1);
+    this->resize(digitCount() + rhs.digitCount() + 1);
     for (auto thisIt = leftToRightBegin(); thisIt != leftToRightEnd(); ++thisIt) {
         *thisIt = 0ul;
     }
@@ -615,7 +612,7 @@ BigUInt &BigUInt::operator*=(const size_t rhs) {
         init(0);
         return *this;
     }
-    m_digits.reserve(m_digits.size() + 3ul);
+    reserve(digitCount() + 3ul);
     if (rhs != 1ul) {
         if (rhs < s_base) {
             for (auto &it : m_digits) {

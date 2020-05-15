@@ -57,6 +57,14 @@ protected:
 
     bool isCorrectlySized() const;
 
+    void reserve(size_t size) {
+        m_digits.reserve(size);
+    }
+
+    void resize(size_t size) {
+        m_digits.resize(size);
+    }
+
     friend void swap(DigitVector &a, DigitVector &b);
 
     std::vector<size_t> m_digits;
