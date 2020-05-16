@@ -6,3 +6,9 @@ Multiplication:		0.0170767 seconds
 Division:			0.0467267 seconds
 1000!:				0.00403532 seconds
 2^(2000):			5.9132e-05 seconds
+
+
+Multiplication:		0.302804 seconds
+Addition:			0.0145821 seconds
+1000!:				0.210748 seconds
+2^(2000):			0.00199314 seconds

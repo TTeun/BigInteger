@@ -1,5 +1,6 @@
 #include "BigUInt.h"
 
+#include "BigInt.h"
 #include "BigUIntBase.h"
 
 #include <cassert>
@@ -140,7 +141,7 @@ BigUInt longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divi
     }
     bubbleViaIterators(divisorDigits.begin(), divisorDigits.end());
     DigitVector::resizeToFitVector(divisorDigits);
-    return BigUInt(std::move(divisorDigits));
+    return BigUInt(std::move(divisorDigits), true);
 }
 
 std::ostream &operator<<(std::ostream &os, const BigUInt &bigUnsignedInt) {
@@ -192,11 +193,18 @@ BigUInt::BigUInt(size_t val) {
     assert(isWellFormed());
 }
 
-BigUInt::BigUInt(std::vector<size_t> &&digits) : BigUIntBase(std::move(digits)) {
+BigUInt::BigUInt(BigUInt &&other) noexcept : BigUIntBase(std::move(other.m_digits)) {
+}
+
+BigUInt::BigUInt(std::vector<size_t> &&digits, bool isAlreadyCorrectlySized) : BigUIntBase(std::move(digits)) {
     if (m_digits.empty()) {
         init(0);
     }
-    assert(isWellFormed());
+    if (isAlreadyCorrectlySized) {
+        assert(isWellFormed());
+    } else {
+        resizeToFit();
+    }
 }
 
 BigUInt::BigUInt(const BigUInt &other) : BigUIntBase(std::vector<size_t>(other.m_digits.begin(), other.m_digits.end())) {
@@ -229,6 +237,7 @@ BigUInt::BigUInt(const std::string &val) {
 void BigUInt::bubble(size_t startIndex) {
     assert(not m_digits.empty());
     assert(startIndex < digitCount());
+
     auto it   = rightToLeftBegin() + startIndex;
     auto next = it + 1;
 
@@ -319,6 +328,10 @@ bool BigUInt::operator>=(const BigUInt &rhs) const {
 BigUInt &BigUInt::operator*=(const BigUInt &rhs) {
     assert(isWellFormed());
     assert(rhs.isWellFormed());
+    if (std::abs(static_cast<long long>(rhs.digitCount() - digitCount())) < 100 && digitCount() > 4400ul) {
+        *this = toomCook_3(*this, rhs);
+        return *this;
+    }
     if (this == &rhs) {
         square();
         return *this;
@@ -417,6 +430,11 @@ BigUInt BigUInt::operator/(const BigUInt &divisor) const {
     if (divisor == 1ul) {
         return BigUInt(*this);
     }
+    if (divisor < s_base) {
+        auto copy = *this;
+        copy.divideBySmallFactor(divisor.mostSignificantDigit());
+        return copy;
+    }
     if (*this < divisor) {
         return 0;
     }
@@ -463,18 +481,12 @@ BigUInt BigUInt::operator+(const BigUInt &rhs) const {
 
 BigUInt BigUInt::copyPrefix(size_t length) const {
     assert(length <= digitCount());
-    return BigUInt(std::vector<size_t>(rightToLeftConstEnd() - length, rightToLeftConstEnd()));
+    return BigUInt(std::vector<size_t>(rightToLeftConstEnd() - length, rightToLeftConstEnd()), true);
 }
 
 BigUInt BigUInt::copySuffix(size_t length) const {
     assert(length <= digitCount());
-    return BigUInt(std::vector<size_t>(rightToLeftConstBegin(), rightToLeftConstBegin() + length));
-}
-
-BigUInt BigUInt::shiftedCopy(size_t shiftAmount) const {
-    auto copy = *this;
-    copy.shift(shiftAmount);
-    return copy;
+    return BigUInt(std::vector<size_t>(rightToLeftConstBegin(), rightToLeftConstBegin() + length), true);
 }
 
 BigUInt &BigUInt::operator%=(const BigUInt &mod) {
@@ -520,4 +532,75 @@ BigUInt BigUInt::operator%(const BigUInt &mod) const {
         copy %= mod.mostSignificantDigit() * s_base + mod.leastSignificantDigit();
     }
     return copy;
+}
+
+void BigUInt::divideBySmallFactor(size_t factor) {
+    assert(factor < s_base);
+
+    size_t carry = 0ul;
+    for (auto thisIt = leftToRightBegin(); thisIt != leftToRightEnd(); ++thisIt) {
+        *thisIt += carry * s_base;
+        carry = *thisIt % factor;
+        *thisIt /= factor;
+    }
+    bubble();
+}
+
+BigUInt BigUInt::toomCook_3(const BigUInt &m, const BigUInt &n) {
+    const size_t i = std::max(m.digitCount() / 3, n.digitCount() / 3);
+
+    const BigInt m0 = BigUInt(std::vector<size_t>{m.rightToLeftConstBegin(), m.rightToLeftConstBegin() + i}, false);
+    const BigInt m1 = BigUInt(std::vector<size_t>{m.rightToLeftConstBegin() + i, m.rightToLeftConstBegin() + 2ul * i}, false);
+    const BigInt m2 = BigUInt(std::vector<size_t>{m.rightToLeftConstBegin() + 2ul * i, m.rightToLeftConstEnd()}, false);
+
+    const BigInt n0 = BigUInt(std::vector<size_t>{n.rightToLeftConstBegin(), n.rightToLeftConstBegin() + i}, false);
+    const BigInt n1 = BigUInt(std::vector<size_t>{n.rightToLeftConstBegin() + i, n.rightToLeftConstBegin() + 2ul * i}, false);
+    const BigInt n2 = BigUInt(std::vector<size_t>{n.rightToLeftConstBegin() + 2ul * i, n.rightToLeftConstEnd()}, false);
+
+    BigInt       a0         = m0 * n0;
+    const BigInt r_one      = (m0 + m1 + m2) * (n0 + n1 + n2);
+    const BigInt r_minusOne = (m0 - m1 + m2) * (n0 - n1 + n2);
+    const BigInt r_minusTwo = (m0 - 2ul * m1 + 4ul * m2) * (n0 - 2ul * n1 + 4ul * n2);
+    const BigInt a4         = m2 * n2;
+
+    BigInt a1;
+    BigInt a2;
+    BigInt a3;
+
+    a3 = (r_minusTwo - r_one) / 3ul;
+    a1 = (r_one - r_minusOne) / 2ul;
+    a2 = r_minusOne - a0;
+    a3 = (a2 - a3) / 2ul + a4 * 2ul;
+    a2 = a2 + a1 - a4;
+    a1 -= a3;
+
+    BigUInt &      u0 = a0.magnitude();
+    BigUInt &      u1 = a1.magnitude();
+    BigUInt &      u2 = a2.magnitude();
+    BigUInt &      u3 = a3.magnitude();
+    const BigUInt &u4 = a4.magnitude();
+
+    u0.resize(m.digitCount() + n.digitCount() + 1ul);
+    addViaIterators(u0.rightToLeftBegin() + i, u0.rightToLeftEnd(), u1.rightToLeftConstBegin(), u1.rightToLeftConstEnd());
+    addViaIterators(u0.rightToLeftBegin() + 2ul * i, u0.rightToLeftEnd(), u2.rightToLeftConstBegin(), u2.rightToLeftConstEnd());
+    addViaIterators(u0.rightToLeftBegin() + 3ul * i, u0.rightToLeftEnd(), u3.rightToLeftConstBegin(), u3.rightToLeftConstEnd());
+    addViaIterators(u0.rightToLeftBegin() + 4ul * i, u0.rightToLeftEnd(), u4.rightToLeftConstBegin(), u4.rightToLeftConstEnd());
+
+    u0.resizeToFit();
+
+    BigUInt result;
+    swap(result.m_digits, u0.m_digits);
+    return result;
+}
+
+BigUInt operator+(size_t lhs, const BigUInt &rhs) {
+    return rhs + lhs;
+}
+
+BigUInt operator-(size_t lhs, const BigUInt &rhs) {
+    return BigUInt(rhs) + lhs;
+}
+
+BigUInt operator*(size_t lhs, const BigUInt &rhs) {
+    return rhs * lhs;
 }

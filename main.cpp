@@ -1,3 +1,4 @@
+#include "BigInt/BigInt.h"
 #include "BigInt/BigUInt.h"
 #include "timer.h"
 
@@ -56,8 +57,14 @@ double timePrimeSizeType() {
 }
 
 int main() {
-    //    std::cout << "Prime finder size_t:\t" << timePrimeSizeType() << " seconds\n";
-    //    std::cout << "Prime finder:\t\t" << timePrime() << " seconds\n";
+//    BigUInt a("1234567890123456789012");
+//    BigUInt b("987654321987654321098");
+//
+//    BigUInt::toomCook_3(a, b);
+//
+//    return 0;
+    //        std::cout << "Prime finder size_t:\t" << timePrimeSizeType() << " seconds\n";
+    //        std::cout << "Prime finder:\t\t" << timePrime() << " seconds\n";
     std::cout << "Multiplication:\t\t" << timeMultiplication(50) << " seconds\n";
     std::cout << "Addition:\t\t\t" << timeAddition(100) << " seconds\n";
     std::cout << "1000!:\t\t\t\t" << timeFactorial() << " seconds\n";
@@ -75,9 +82,9 @@ int main() {
 
 void testDivision(size_t n) {
     for (size_t dummy = 0; dummy != n; ++dummy) {
-        size_t     a = static_cast<size_t>(rand() + 1);
-        size_t     b = static_cast<size_t>(rand() + 1);
-        const auto k = BigUInt(a) / BigUInt(b);
+        const size_t a = static_cast<size_t>(rand() + 1);
+        const size_t b = static_cast<size_t>(rand() + 1);
+        const auto   k = BigUInt(a) / BigUInt(b);
         assert(k == a / b);
     }
 }

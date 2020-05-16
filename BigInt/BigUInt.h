@@ -13,11 +13,13 @@ public:
 
     BigUInt(const BigUInt &other);
 
-    explicit BigUInt(std::vector<size_t> &&digits);
+    BigUInt(BigUInt &&other) noexcept;
+
+    explicit BigUInt(std::vector<size_t> &&digits, bool isAlreadyCorrectlySized);
 
     BigUInt(size_t val);
 
-    BigUInt(const std::string &val);
+    explicit BigUInt(const std::string &val);
 
     static BigUInt createRandom(size_t numberOfDigits);
 
@@ -59,6 +61,12 @@ public:
 
     BigUInt operator/(const BigUInt &divisor) const;
 
+    friend BigUInt operator+(size_t lhs, const BigUInt &rhs);
+
+    friend BigUInt operator-(size_t lhs, const BigUInt &rhs);
+
+    friend BigUInt operator*(size_t lhs, const BigUInt &rhs);
+
     bool operator==(const BigUInt &rhs) const;
 
     bool operator!=(const BigUInt &rhs) const;
@@ -79,6 +87,8 @@ public:
 
     BigUInt copySuffix(size_t length) const;
 
+    void divideBySmallFactor(size_t factor);
+
 private:
     static size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &leftToRightConstIt,
                                      const std::vector<size_t>::const_reverse_iterator &leftToRightConstEnd,
@@ -92,14 +102,12 @@ private:
 
     void square();
 
-
     void init(size_t val);
 
     void bubble(size_t startIndex = 0ul);
 
-    //    void shiftedCopy(size_t shiftAmount);
-
-    BigUInt shiftedCopy(size_t shiftAmount) const;
+public:
+    static BigUInt toomCook_3(const BigUInt &m, const BigUInt &n);
 };
 
 #endif // __BIG_U_INT__H__

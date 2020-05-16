@@ -2,6 +2,7 @@
   <dictionary name="pc">
     <words>
       <w>karatsuba</w>
+      <w>toom</w>
     </words>
   </dictionary>
 </component>

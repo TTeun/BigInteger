@@ -14,15 +14,17 @@ typedef std::vector<size_t>::const_iterator         rightToLeftConstIterator;
 class DigitVector {
 
 public:
-    static const size_t s_base =
-        static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
-    //
-    //    static const size_t s_base = 1000000000ul;
-    //    static const size_t s_base = 10ul;
+    //        static const size_t s_base =
+    //            static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
+
+//    static const size_t s_base = 10000ul;
+        static const size_t s_base = 1000000000ul;
 
     static const size_t s_maxDigit = s_base - 1ul;
 
     size_t digitCount() const;
+
+    friend class BigInt;
 
 protected:
     DigitVector();
@@ -68,8 +70,6 @@ protected:
     void resizeToFit();
 
     static void resizeToFitVector(std::vector<size_t> &digits);
-
-    friend void swap(DigitVector &a, DigitVector &b);
 
     std::vector<size_t> m_digits;
 };

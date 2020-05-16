@@ -15,6 +15,8 @@ public:
 protected:
     static const size_t s_karatsubaLowerLimit = 200ul;
 
+    void square();
+
     static void karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
                                               const rightToLeftIterator &     resultEnd,
                                               rightToLeftConstIterator        rhsIt,
@@ -51,19 +53,23 @@ protected:
                                      rightToLeftIterator                 thisEnd,
                                      std::vector<size_t>::const_iterator rhsIt,
                                      std::vector<size_t>::const_iterator rhsEnd);
+
     static bool lessThanViaIterators(const leftToRightConstIterator &thisIt,
                                      const leftToRightConstIterator &thisEnd,
                                      const leftToRightConstIterator &rhsIt,
                                      const leftToRightConstIterator &rhsEnd);
+
     static bool greaterThanViaIterators(const leftToRightConstIterator &thisIt,
                                         const leftToRightConstIterator &thisEnd,
                                         const leftToRightConstIterator &rhsIt,
                                         const leftToRightConstIterator &rhsEnd);
+
     static bool lessThanShiftedRhsViaIterators(leftToRightConstIterator        thisIt,
                                                const leftToRightConstIterator &thisEnd,
                                                leftToRightConstIterator        rhsIt,
                                                const leftToRightConstIterator &rhsEnd,
-                                               size_t                    trailingZeroesOfRhs);
+                                               size_t                          trailingZeroesOfRhs);
+    static void carryAdditionViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator &thisEnd, size_t carry);
 };
 
 #endif // __BIG_U_INT_BASE__H__

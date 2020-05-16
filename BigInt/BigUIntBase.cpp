@@ -15,6 +15,7 @@ BigUIntBase::BigUIntBase() {
 
 BigUIntBase::BigUIntBase(std::vector<size_t> &&digits) : DigitVector(std::move(digits)) {
 }
+
 BigUIntBase::BigUIntBase(rightToLeftConstIterator it, rightToLeftConstIterator endIt) : DigitVector({it, endIt}) {
 }
 
@@ -49,7 +50,7 @@ bool BigUIntBase::greaterThanViaIterators(const leftToRightConstIterator &thisIt
     return lessThanViaIterators(rhsIt, rhsEnd, thisIt, thisEnd);
 }
 
-static void carryAdditionViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator &thisEnd, size_t carry) {
+void BigUIntBase::carryAdditionViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator &thisEnd, size_t carry) {
     assert(carry != 0ul);
     assert(carry + DigitVector::s_base < std::numeric_limits<size_t>::max());
     for (; thisIt != thisEnd; ++thisIt) {
