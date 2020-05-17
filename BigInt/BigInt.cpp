@@ -191,17 +191,21 @@ BigInt &BigInt::operator/=(size_t divisor) {
 void BigInt::resize(size_t size) {
     m_magnitude.resize(size);
 }
+
 void BigInt::reserve(size_t size) {
     m_magnitude.reserve(size);
 }
+
 BigInt operator+(size_t lhs, const BigInt &rhs) {
     return rhs + lhs;
 }
+
 BigInt operator-(size_t lhs, const BigInt &rhs) {
     auto result = rhs - lhs;
     result.flipSign();
     return result;
 }
+
 BigInt operator*(size_t lhs, const BigInt &rhs) {
     return rhs * lhs;
 }

@@ -97,9 +97,10 @@ BigUInt longDivision(BigUInt &dividend, const BigUInt &divisor) {
     if (dividend < divisor) {
         return 0ul;
     }
-    const size_t t = ceilingIntegerDivision(BigUInt::s_base, 2ul * divisor.mostSignificantDigit());
-    if (t > 1) {
-        return longDivisionAfterAdjustingDivisor(dividend *= t, divisor * t);
+    const size_t factor = ceilingIntegerDivision(BigUInt::s_base, 2ul * divisor.mostSignificantDigit());
+    if (factor > 1) {
+        dividend *= factor;
+        return longDivisionAfterAdjustingDivisor(dividend, factor * divisor);
     } else {
         return longDivisionAfterAdjustingDivisor(dividend, divisor);
     }
@@ -328,7 +329,7 @@ bool BigUInt::operator>=(const BigUInt &rhs) const {
 BigUInt &BigUInt::operator*=(const BigUInt &rhs) {
     assert(isWellFormed());
     assert(rhs.isWellFormed());
-    if (std::abs(static_cast<long long>(rhs.digitCount() - digitCount())) < 100 && digitCount() > 4400ul) {
+    if (std::abs(static_cast<long long>(rhs.digitCount() - digitCount())) < 500 && digitCount() > 4400ul) {
         *this = toomCook_3(*this, rhs);
         return *this;
     }
@@ -432,7 +433,7 @@ BigUInt BigUInt::operator/(const BigUInt &divisor) const {
     }
     if (divisor < s_base) {
         auto copy = *this;
-        copy.divideBySmallFactor(divisor.mostSignificantDigit());
+        copy.divideByLessThanBase(divisor.mostSignificantDigit());
         return copy;
     }
     if (*this < divisor) {
@@ -491,8 +492,19 @@ BigUInt BigUInt::copySuffix(size_t length) const {
 
 BigUInt &BigUInt::operator%=(const BigUInt &mod) {
     assert(mod != 0ul);
-    BigUInt copy(*this);
-    *this -= longDivision(copy, mod) * mod;
+
+    if (*this < mod) {
+        return *this;
+    }
+    const size_t factor = ceilingIntegerDivision(BigUInt::s_base, 2ul * mod.mostSignificantDigit());
+    if (factor > 1) {
+        *this *= factor;
+        longDivisionAfterAdjustingDivisor(*this, factor * mod);
+        *this /= factor;
+    } else {
+        longDivisionAfterAdjustingDivisor(*this, mod);
+    }
+    resizeToFit();
     return *this;
 }
 
@@ -530,11 +542,13 @@ BigUInt BigUInt::operator%(const BigUInt &mod) const {
         copy %= mod.leastSignificantDigit();
     } else if (mod.digitCount() == 2ul) {
         copy %= mod.mostSignificantDigit() * s_base + mod.leastSignificantDigit();
+    } else {
+        copy %= mod;
     }
     return copy;
 }
 
-void BigUInt::divideBySmallFactor(size_t factor) {
+void BigUInt::divideByLessThanBase(size_t factor) {
     assert(factor < s_base);
 
     size_t carry = 0ul;
@@ -543,7 +557,7 @@ void BigUInt::divideBySmallFactor(size_t factor) {
         carry = *thisIt % factor;
         *thisIt /= factor;
     }
-    bubble();
+    resizeToFit();
 }
 
 BigUInt BigUInt::toomCook_3(const BigUInt &m, const BigUInt &n) {
@@ -570,7 +584,7 @@ BigUInt BigUInt::toomCook_3(const BigUInt &m, const BigUInt &n) {
     a3 = (r_minusTwo - r_one) / 3ul;
     a1 = (r_one - r_minusOne) / 2ul;
     a2 = r_minusOne - a0;
-    a3 = (a2 - a3) / 2ul + a4 * 2ul;
+    a3 = (a2 - a3) / 2ul + 2ul * a4;
     a2 = a2 + a1 - a4;
     a1 -= a3;
 
@@ -603,4 +617,28 @@ BigUInt operator-(size_t lhs, const BigUInt &rhs) {
 
 BigUInt operator*(size_t lhs, const BigUInt &rhs) {
     return rhs * lhs;
+}
+
+BigUInt BigUInt::operator/(size_t divisor) const {
+    if (divisor < s_base) {
+        auto copy = *this;
+        copy.divideByLessThanBase(divisor);
+        return copy;
+    } else {
+        return *this / BigUInt(divisor);
+    }
+}
+
+BigUInt &BigUInt::operator/=(const BigUInt &divisor) {
+    *this = *this / divisor;
+    return *this;
+}
+
+BigUInt &BigUInt::operator/=(size_t divisor) {
+    if (divisor < s_base) {
+        divideByLessThanBase(divisor);
+    } else {
+        *this = *this / divisor;
+    }
+    return *this;
 }

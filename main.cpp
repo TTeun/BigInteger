@@ -6,23 +6,9 @@
 #include <ctime>
 #include <iostream>
 
-void testDivision(size_t n);
-
 double timeFactorial();
 
 double timePower();
-
-void testMultiplication(size_t n);
-
-void testSumNaturalNumbers();
-
-void testFixedModulo();
-
-void testFixedDivision();
-
-void testAddition(size_t n);
-
-void testSubtraction();
 
 double timeAddition(size_t n);
 
@@ -31,62 +17,28 @@ double timeMultiplication(size_t n);
 double timeDivision(size_t n);
 
 template <typename T>
-bool isPrime(const T &b) {
-    for (T d(3); d * d <= b; d += 2) {
-        if (b % d == 0ul) {
-            return false;
-        }
-    }
-    return true;
-}
+bool isPrime(const T &b);
 
-double timePrime() {
-    Timer timer;
-    for (BigUInt b = 100000000001; b != 100000000101; b += 2) {
-        isPrime(b);
-    }
-    return timer.elapsed();
-}
+double timePrime();
 
 double timePrimeSizeType() {
     Timer timer;
     for (size_t b = 100000000001; b != 100000000101; b += 2) {
-        isPrime(b);
+        if (isPrime(b)) {
+            //            std::cout << b << '\n';
+        }
     }
     return timer.elapsed();
 }
 
 int main() {
-//    BigUInt a("1234567890123456789012");
-//    BigUInt b("987654321987654321098");
-//
-//    BigUInt::toomCook_3(a, b);
-//
-//    return 0;
-    //        std::cout << "Prime finder size_t:\t" << timePrimeSizeType() << " seconds\n";
-    //        std::cout << "Prime finder:\t\t" << timePrime() << " seconds\n";
-    std::cout << "Multiplication:\t\t" << timeMultiplication(50) << " seconds\n";
+    std::cout << "Prime finder size_t:\t" << timePrimeSizeType() << " seconds\n";
+    std::cout << "Prime finder:\t\t" << timePrime() << " seconds\n";
+    std::cout << "Multiplication:\t\t" << timeMultiplication(500) << " seconds\n";
     std::cout << "Addition:\t\t\t" << timeAddition(100) << " seconds\n";
     std::cout << "1000!:\t\t\t\t" << timeFactorial() << " seconds\n";
     std::cout << "2^(2000):\t\t\t" << timePower() << " seconds\n";
     std::cout << "Division:\t\t\t" << timeDivision(50) << " seconds\n";
-
-    testMultiplication(250000ul);
-    testAddition(10000ul);
-    testSubtraction();
-    testDivision(1000ul);
-    testFixedDivision();
-    testFixedModulo();
-    testSumNaturalNumbers();
-}
-
-void testDivision(size_t n) {
-    for (size_t dummy = 0; dummy != n; ++dummy) {
-        const size_t a = static_cast<size_t>(rand() + 1);
-        const size_t b = static_cast<size_t>(rand() + 1);
-        const auto   k = BigUInt(a) / BigUInt(b);
-        assert(k == a / b);
-    }
 }
 
 double timeFactorial() {
@@ -171,56 +123,6 @@ double timePower() {
     return timer.elapsed();
 }
 
-void testMultiplication(size_t n) {
-    for (size_t dummy = 0; dummy != n; ++dummy) {
-        size_t     a = rand() % std::numeric_limits<size_t>::max();
-        size_t     b = rand() % std::numeric_limits<size_t>::max();
-        const auto k = BigUInt(a) * BigUInt(b);
-        assert(BigUInt(a) * BigUInt(b) == a * b);
-    }
-}
-
-void testSumNaturalNumbers() {
-    BigUInt sumOfNaturalNumbers("5000050000");
-    BigUInt b(0);
-    for (size_t i = 0; i != 100001; ++i) {
-        b += BigUInt(i);
-    }
-    assert(b == sumOfNaturalNumbers);
-    for (size_t i = 0; i != 100001; ++i) {
-        b -= BigUInt(i);
-    }
-    assert(b == 0);
-}
-
-void testFixedModulo() {
-    BigUInt b("9945549994547342487362847632487678463291881729");
-    assert(b % 1237862343UL == 688386621UL);
-}
-
-void testFixedDivision() {
-    const auto a = BigUInt("3198842876987466798374634897635764398756873247632874623784783264783267632757328657832647832647832784"
-                           "683724678326487326743656329847047017259887150872142");
-    const auto b = BigUInt("29371982479821749842772102198749275124736283768732687126321");
-    const auto c = BigUInt("108907966262918718058705949100715069245292669239739335359987042442051400703079828741589494778");
-    assert(a / b == c);
-}
-
-void testAddition(size_t n) {
-    for (size_t dummy = 0; dummy != n; ++dummy) {
-        size_t     a = rand() % (std::numeric_limits<size_t>::max() / 2ul);
-        size_t     b = rand() % (std::numeric_limits<size_t>::max() / 2ul);
-        const auto k = BigUInt(a) + BigUInt(b);
-        assert(k == a + b);
-    }
-}
-void testSubtraction() {
-    BigUInt b("21784672876238762183782176387213213");
-    BigUInt c("327846728238762183782176387213213");
-    b -= c;
-    assert(b == BigUInt("21456826148000000000000000000000000"));
-}
-
 double timeAddition(size_t n) {
     Timer timer;
     for (size_t i = 0; i != n; ++i) {
@@ -249,4 +151,22 @@ double timeDivision(size_t n) {
         const auto c = a / b;
     }
     return timer.elapsed() / n;
+}
+double timePrime() {
+    Timer timer;
+    for (BigUInt b = 100000000001; b != 100000000101; b += 2) {
+        if (isPrime(b)) {
+            //            std::cout << b << '\n';
+        }
+    }
+    return timer.elapsed();
+}
+template <typename T>
+bool isPrime(const T &b) {
+    for (T d(3); d * d <= b; d += 2) {
+        if (b % d == 0ul) {
+            return false;
+        }
+    }
+    return true;
 }

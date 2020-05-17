@@ -61,6 +61,12 @@ public:
 
     BigUInt operator/(const BigUInt &divisor) const;
 
+    BigUInt operator/(size_t divisor) const;
+
+    BigUInt &operator/=(const BigUInt &divisor);
+
+    BigUInt &operator/=(size_t divisor);
+
     friend BigUInt operator+(size_t lhs, const BigUInt &rhs);
 
     friend BigUInt operator-(size_t lhs, const BigUInt &rhs);
@@ -87,7 +93,7 @@ public:
 
     BigUInt copySuffix(size_t length) const;
 
-    void divideBySmallFactor(size_t factor);
+    void divideByLessThanBase(size_t factor);
 
 private:
     static size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &leftToRightConstIt,

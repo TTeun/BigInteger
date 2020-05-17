@@ -69,6 +69,7 @@ protected:
                                                leftToRightConstIterator        rhsIt,
                                                const leftToRightConstIterator &rhsEnd,
                                                size_t                          trailingZeroesOfRhs);
+
     static void carryAdditionViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator &thisEnd, size_t carry);
 };
 
