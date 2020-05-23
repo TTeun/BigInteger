@@ -9,15 +9,25 @@
 class BigUInt : public BigUIntBase {
 
 public:
-    BigUInt();
+    BigUInt() {
+        init(0);
+        assert(isWellFormed());
+    }
 
-    BigUInt(const BigUInt &other);
+    BigUInt(size_t val) {
+        init(val);
+        assert(isWellFormed());
+    }
 
-    BigUInt(BigUInt &&other) noexcept;
+    BigUInt(BigUInt &&other) noexcept : BigUIntBase(std::move(other.m_digits)) {
+    }
+
+    BigUInt(const BigUInt &other)
+        : BigUIntBase(std::vector<size_t>(other.m_digits.begin(), other.m_digits.end())) {
+        assert(isWellFormed());
+    }
 
     explicit BigUInt(std::vector<size_t> &&digits, bool isAlreadyCorrectlySized);
-
-    BigUInt(size_t val);
 
     explicit BigUInt(const std::string &val);
 
@@ -25,11 +35,12 @@ public:
 
     static BigUInt createRandomFromDecimalDigits(size_t orderOfMagnitude);
 
-    size_t approximatePowerOfTen() const;
-
     BigUInt &operator=(const BigUInt &rhs);
 
-    BigUInt &operator=(size_t rhs);
+    BigUInt &operator=(size_t rhs) {
+        init(rhs);
+        return *this;
+    }
 
     BigUInt &operator+=(const BigUInt &rhs);
 
@@ -67,36 +78,48 @@ public:
 
     BigUInt &operator/=(size_t divisor);
 
-    friend BigUInt operator+(size_t lhs, const BigUInt &rhs);
-
-    friend BigUInt operator-(size_t lhs, const BigUInt &rhs);
-
-    friend BigUInt operator*(size_t lhs, const BigUInt &rhs);
-
     bool operator==(const BigUInt &rhs) const;
 
-    bool operator!=(const BigUInt &rhs) const;
+    bool operator!=(const BigUInt &rhs) const {
+        return !(rhs == *this);
+    }
 
     bool operator<(const BigUInt &rhs) const;
 
-    bool operator>(const BigUInt &rhs) const;
+    bool operator>(const BigUInt &rhs) const {
+        return rhs < *this;
+    }
 
     bool operator<=(const BigUInt &rhs) const;
 
-    bool operator>=(const BigUInt &rhs) const;
+    void divideByLessThanBase(size_t factor);
+
+    bool operator>=(const BigUInt &rhs) const {
+        return !(*this < rhs);
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const BigUInt &anInt);
 
+    friend BigUInt operator+(size_t lhs, const BigUInt &rhs) {
+        return rhs + lhs;
+    }
+
+    friend BigUInt operator-(size_t lhs, const BigUInt &rhs) {
+        return BigUInt(lhs) - rhs;
+    }
+
+    friend BigUInt operator*(size_t lhs, const BigUInt &rhs) {
+        return rhs * lhs;
+    }
+
     friend BigUInt power(const BigUInt &base, size_t exponent);
 
-    void divideByLessThanBase(size_t factor);
-
 private:
-    static size_t divisionSubRoutine(const std::vector<size_t>::const_reverse_iterator &leftToRightConstIt,
-                                     const std::vector<size_t>::const_reverse_iterator &leftToRightConstEnd,
-                                     const std::vector<size_t>::iterator &              rightToLeftIt,
-                                     const std::vector<size_t>::iterator &              rightToLeftEnd,
-                                     const BigUInt &                                    divisor);
+    static size_t divisionSubRoutine(leftToRightConstIterator leftToRightConstIt,
+                                     leftToRightConstIterator leftToRightConstEnd,
+                                     rightToLeftIterator      rightToLeftIt,
+                                     rightToLeftIterator      rightToLeftEnd,
+                                     const BigUInt &          divisor);
 
     static BigUInt longDivision(BigUInt &dividend, const BigUInt &divisor);
 

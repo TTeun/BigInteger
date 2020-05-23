@@ -14,13 +14,13 @@ int main() {
     mpz_set_str(n1, "21983712987319237912389139871982398127398712312312312312", 10);
 
     Timer t1;
-    for (size_t i = 0; i != 5; ++i) {
+    for (size_t i = 0; i != 7; ++i) {
         mpz_mul(n1, n1, n1);
     }
     const double gmpTime = t1.elapsed();
     BigUInt      b       = BigUInt{"21983712987319237912389139871982398127398712312312312312"};
     Timer        t;
-    for (size_t i = 0; i != 5; ++i) {
+    for (size_t i = 0; i != 7; ++i) {
         b *= b;
     }
     const double bTime = t.elapsed();

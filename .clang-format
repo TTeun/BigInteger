@@ -40,7 +40,7 @@ BinPackParameters: false
 #BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 #BreakStringLiterals: true
-ColumnLimit:     140
+ColumnLimit:     110
 #CommentPragmas:  '^ IWYU pragma:'
 #CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true

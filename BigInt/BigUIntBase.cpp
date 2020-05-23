@@ -1,29 +1,15 @@
-//
-// Created by pc on 5/15/20.
-//
-
 #include "BigUIntBase.h"
-
-#include "BigUInt.h"
 
 #include <cassert>
 #include <iostream>
 #include <random>
-#include <sstream>
-BigUIntBase::BigUIntBase() {
-}
 
-BigUIntBase::BigUIntBase(std::vector<size_t> &&digits) : DigitVector(std::move(digits)) {
-}
 
-BigUIntBase::BigUIntBase(rightToLeftConstIterator it, rightToLeftConstIterator endIt) : DigitVector({it, endIt}) {
-}
-
-bool BigUIntBase::lessThanShiftedRhsViaIterators(leftToRightConstIterator        thisIt,
-                                                 const leftToRightConstIterator &thisEnd,
-                                                 leftToRightConstIterator        rhsIt,
-                                                 const leftToRightConstIterator &rhsEnd,
-                                                 const size_t                    trailingZeroesOfRhs) {
+bool BigUIntBase::lessThanShiftedRhsViaIterators(leftToRightConstIterator       thisIt,
+                                                 const leftToRightConstIterator thisEnd,
+                                                 leftToRightConstIterator       rhsIt,
+                                                 const leftToRightConstIterator rhsEnd,
+                                                 size_t                         trailingZeroesOfRhs) {
     if (static_cast<size_t>(thisEnd - thisIt) != static_cast<size_t>(rhsEnd - rhsIt) + trailingZeroesOfRhs) {
         return static_cast<size_t>(thisEnd - thisIt) < static_cast<size_t>(rhsEnd - rhsIt) + trailingZeroesOfRhs;
     }
@@ -36,21 +22,7 @@ bool BigUIntBase::lessThanShiftedRhsViaIterators(leftToRightConstIterator       
     return false;
 }
 
-bool BigUIntBase::lessThanViaIterators(const leftToRightConstIterator &thisIt,
-                                       const leftToRightConstIterator &thisEnd,
-                                       const leftToRightConstIterator &rhsIt,
-                                       const leftToRightConstIterator &rhsEnd) {
-    return lessThanShiftedRhsViaIterators(thisIt, thisEnd, rhsIt, rhsEnd, 0ul);
-}
-
-bool BigUIntBase::greaterThanViaIterators(const leftToRightConstIterator &thisIt,
-                                          const leftToRightConstIterator &thisEnd,
-                                          const leftToRightConstIterator &rhsIt,
-                                          const leftToRightConstIterator &rhsEnd) {
-    return lessThanViaIterators(rhsIt, rhsEnd, thisIt, thisEnd);
-}
-
-void BigUIntBase::carryAdditionViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator &thisEnd, size_t carry) {
+void BigUIntBase::carryAdditionViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator thisEnd, size_t carry) {
     assert(carry != 0ul);
     assert(carry + DigitVector::s_base < std::numeric_limits<size_t>::max());
     for (; thisIt != thisEnd; ++thisIt) {
@@ -108,12 +80,12 @@ void BigUIntBase::addMultipleViaIterators(rightToLeftIterator                   
     }
 }
 
-void BigUIntBase::multiplyViaIterators(rightToLeftIterator             resultIt,
-                                       const rightToLeftIterator &     resultEnd,
-                                       rightToLeftConstIterator        rhsIt,
-                                       const rightToLeftConstIterator &rhsEnd,
-                                       rightToLeftConstIterator        copyIt,
-                                       const rightToLeftConstIterator &copyEnd) {
+void BigUIntBase::multiplyViaIterators(rightToLeftIterator            resultIt,
+                                       const rightToLeftIterator      resultEnd,
+                                       rightToLeftConstIterator       rhsIt,
+                                       const rightToLeftConstIterator rhsEnd,
+                                       rightToLeftConstIterator       copyIt,
+                                       const rightToLeftConstIterator copyEnd) {
     const auto copySize = static_cast<size_t>(copyEnd - copyIt);
     const auto rhsSize  = static_cast<size_t>(rhsEnd - rhsIt);
     if (std::max(copySize, rhsSize) < BigUIntBase::s_karatsubaLowerLimit) {
@@ -130,12 +102,12 @@ void BigUIntBase::multiplyViaIterators(rightToLeftIterator             resultIt,
     }
 }
 
-void BigUIntBase::splitOneMultiplicationViaIterators(rightToLeftIterator             resultIt,
-                                                     const rightToLeftIterator &     resultEnd,
-                                                     rightToLeftConstIterator        rhsIt,
-                                                     const rightToLeftConstIterator &rhsEnd,
-                                                     rightToLeftConstIterator        largeIt,
-                                                     const rightToLeftConstIterator &largeEnd) {
+void BigUIntBase::splitOneMultiplicationViaIterators(rightToLeftIterator            resultIt,
+                                                     const rightToLeftIterator      resultEnd,
+                                                     rightToLeftConstIterator       rhsIt,
+                                                     const rightToLeftConstIterator rhsEnd,
+                                                     rightToLeftConstIterator       largeIt,
+                                                     const rightToLeftConstIterator largeEnd) {
     const auto m = static_cast<size_t>(largeEnd - largeIt);
     assert(m >= BigUIntBase::s_karatsubaLowerLimit);
     const size_t splitIndex = m / 2ul;
@@ -184,12 +156,12 @@ void BigUIntBase::subtractViaIterators(rightToLeftIterator                      
     }
 }
 
-void BigUIntBase::karatsubaMultiplyViaIterators(rightToLeftIterator             resultIt,
-                                                const rightToLeftIterator &     resultEnd,
-                                                rightToLeftConstIterator        rhsIt,
-                                                const rightToLeftConstIterator &rhsEnd,
-                                                rightToLeftConstIterator        copyIt,
-                                                const rightToLeftConstIterator &copyEnd) {
+void BigUIntBase::karatsubaMultiplyViaIterators(rightToLeftIterator            resultIt,
+                                                const rightToLeftIterator      resultEnd,
+                                                rightToLeftConstIterator       rhsIt,
+                                                const rightToLeftConstIterator rhsEnd,
+                                                rightToLeftConstIterator       copyIt,
+                                                const rightToLeftConstIterator copyEnd) {
     const auto m = static_cast<size_t>(std::min(copyEnd - copyIt, rhsEnd - rhsIt));
     assert(m >= BigUIntBase::s_karatsubaLowerLimit);
     const size_t splitIndex = m / 2ul;

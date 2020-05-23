@@ -1,6 +1,7 @@
 #ifndef TEUN_GAME_DIGITVECTOR_H
 #define TEUN_GAME_DIGITVECTOR_H
 
+#include <cassert>
 #include <cmath>
 #include <limits>
 #include <ostream>
@@ -18,40 +19,68 @@ public:
 
     static const size_t s_maxDigit = s_base - 1ul;
 
-    size_t digitCount() const;
+    size_t digitCount() const {
+        return m_digits.size();
+    }
 
     friend class BigInt;
 
 protected:
-    DigitVector();
+    DigitVector() = default;
 
-    DigitVector(std::vector<size_t> &&digits);
+    explicit DigitVector(std::vector<size_t> &&digits) : m_digits(std::move(digits)) {
+    }
 
-    size_t digitAt(size_t index) const;
+    size_t digitAt(size_t index) const {
+        assert(index < m_digits.size());
+        return m_digits.at(index);
+    }
 
-    void shift(size_t shiftAmount);
+    void shift(size_t shiftAmount) {
+        m_digits.insert(rightToLeftBegin(), shiftAmount, 0);
+    }
 
-    size_t mostSignificantDigit() const;
-
-    size_t leastSignificantDigit() const;
+    size_t leastSignificantDigit() const {
+        return m_digits.front();
+    }
 
     bool isWellFormed() const;
 
-    leftToRightIterator leftToRightBegin();
+    size_t mostSignificantDigit() const {
+        return m_digits.back();
+    }
 
-    leftToRightIterator leftToRightEnd();
+    leftToRightIterator leftToRightBegin() {
+        return m_digits.rbegin();
+    }
 
-    rightToLeftIterator rightToLeftBegin();
+    leftToRightIterator leftToRightEnd() {
+        return m_digits.rend();
+    }
 
-    rightToLeftIterator rightToLeftEnd();
+    rightToLeftIterator rightToLeftBegin() {
+        return m_digits.begin();
+    }
 
-    leftToRightConstIterator leftToRightConstBegin() const;
+    rightToLeftIterator rightToLeftEnd() {
+        return m_digits.end();
+    }
 
-    leftToRightConstIterator leftToRightConstEnd() const;
+    leftToRightConstIterator leftToRightConstBegin() const {
+        return m_digits.crbegin();
+    }
 
-    rightToLeftConstIterator rightToLeftConstBegin() const;
+    leftToRightConstIterator leftToRightConstEnd() const {
+        return m_digits.crend();
+    }
 
-    rightToLeftConstIterator rightToLeftConstEnd() const;
+    rightToLeftConstIterator rightToLeftConstBegin() const {
+        return m_digits.cbegin();
+    }
+
+    rightToLeftConstIterator rightToLeftConstEnd() const {
+        return m_digits.cend();
+    }
 
     bool isCorrectlySized() const;
 
@@ -63,7 +92,9 @@ protected:
         m_digits.resize(size);
     }
 
-    void resizeToFit();
+    void resizeToFit() {
+        resizeToFitVector(m_digits);
+    }
 
     static void resizeToFitVector(std::vector<size_t> &digits);
 

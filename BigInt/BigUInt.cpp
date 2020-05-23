@@ -45,14 +45,15 @@ void bubbleViaIterators(rightToLeftIterator thisIt, const rightToLeftIterator &t
     }
 }
 
-/* =================== Friend functions =================== */
-
-size_t BigUInt::divisionSubRoutine(const leftToRightConstIterator &leftToRightConstIt,
-                                   const leftToRightConstIterator &leftToRightConstEnd,
-                                   const rightToLeftIterator &     rightToLeftIt,
-                                   const rightToLeftIterator &     rightToLeftEnd,
-                                   const BigUInt &                 divisor) {
-    if (lessThanViaIterators(leftToRightConstIt, leftToRightConstEnd, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd())) {
+size_t BigUInt::divisionSubRoutine(const leftToRightConstIterator leftToRightConstIt,
+                                   const leftToRightConstIterator leftToRightConstEnd,
+                                   const rightToLeftIterator      rightToLeftIt,
+                                   const rightToLeftIterator      rightToLeftEnd,
+                                   const BigUInt &                divisor) {
+    if (lessThanViaIterators(leftToRightConstIt,
+                             leftToRightConstEnd,
+                             divisor.leftToRightConstBegin(),
+                             divisor.leftToRightConstEnd())) {
         return 0ul;
     }
     assert(divisor != 0ul);
@@ -63,11 +64,15 @@ size_t BigUInt::divisionSubRoutine(const leftToRightConstIterator &leftToRightCo
     assert(m >= n);
     size_t correction = 0ul;
 
-    while (not lessThanShiftedRhsViaIterators(
-        leftToRightConstIt, leftToRightConstEnd, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd(), 1)) {
-        // Divisor fits into dividend at least s_base times, so we subtract the divisor shifted by one digit
-        BigUIntBase::subtractViaIterators(
-            rightToLeftIt + 1ul, rightToLeftEnd, divisor.rightToLeftConstBegin(), divisor.rightToLeftConstEnd());
+    while (not lessThanShiftedRhsViaIterators(leftToRightConstIt,
+                                              leftToRightConstEnd,
+                                              divisor.leftToRightConstBegin(),
+                                              divisor.leftToRightConstEnd(),
+                                              1)) {
+        BigUIntBase::subtractViaIterators(rightToLeftIt + 1ul,
+                                          rightToLeftEnd,
+                                          divisor.rightToLeftConstBegin(),
+                                          divisor.rightToLeftConstEnd());
         correction += BigUInt::s_base;
     }
 
@@ -75,7 +80,8 @@ size_t BigUInt::divisionSubRoutine(const leftToRightConstIterator &leftToRightCo
     if (m == n) {
         quotientEstimate = (*leftToRightConstIt) / divisor.mostSignificantDigit();
     } else {
-        quotientEstimate = (*leftToRightConstIt * BigUInt::s_base + *(leftToRightConstIt + 1ul)) / divisor.mostSignificantDigit();
+        quotientEstimate = (*leftToRightConstIt * BigUInt::s_base + *(leftToRightConstIt + 1ul)) /
+                           divisor.mostSignificantDigit();
     }
     quotientEstimate    = std::min(quotientEstimate, DigitVector::s_maxDigit);
     const size_t offset = *leftToRightConstIt == 0 ? 1ul : 0ul;
@@ -88,8 +94,10 @@ size_t BigUInt::divisionSubRoutine(const leftToRightConstIterator &leftToRightCo
         --quotientEstimate;
         closestMultipleEstimate -= divisor;
     }
-    BigUIntBase::subtractViaIterators(
-        rightToLeftIt, rightToLeftEnd, closestMultipleEstimate.rightToLeftConstBegin(), closestMultipleEstimate.rightToLeftConstEnd());
+    BigUIntBase::subtractViaIterators(rightToLeftIt,
+                                      rightToLeftEnd,
+                                      closestMultipleEstimate.rightToLeftConstBegin(),
+                                      closestMultipleEstimate.rightToLeftConstEnd());
     return quotientEstimate + correction;
 }
 
@@ -129,7 +137,8 @@ BigUInt BigUInt::longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigU
                                                                 dividend.rightToLeftBegin() + splitIndex,
                                                                 dividend.rightToLeftEnd(),
                                                                 divisor);
-        // The first n + 1 digits of dividend now contain their remainder after division by divisor, as per the divisionSubRoutine
+        // The first n + 1 digits of dividend now contain their remainder after division by divisor, as per
+        // the divisionSubRoutine
         dividend.resizeToFit();
         m = dividend.digitCount();
     }
@@ -184,20 +193,8 @@ BigUInt power(const BigUInt &base, size_t exponent) {
 
 /* =================== Member functions =================== */
 
-BigUInt::BigUInt() {
-    init(0);
-    assert(isWellFormed());
-}
-
-BigUInt::BigUInt(size_t val) {
-    init(val);
-    assert(isWellFormed());
-}
-
-BigUInt::BigUInt(BigUInt &&other) noexcept : BigUIntBase(std::move(other.m_digits)) {
-}
-
-BigUInt::BigUInt(std::vector<size_t> &&digits, bool isAlreadyCorrectlySized) : BigUIntBase(std::move(digits)) {
+BigUInt::BigUInt(std::vector<size_t> &&digits, bool isAlreadyCorrectlySized)
+    : BigUIntBase(std::move(digits)) {
     if (m_digits.empty()) {
         init(0);
     }
@@ -208,13 +205,11 @@ BigUInt::BigUInt(std::vector<size_t> &&digits, bool isAlreadyCorrectlySized) : B
     }
 }
 
-BigUInt::BigUInt(const BigUInt &other) : BigUIntBase(std::vector<size_t>(other.m_digits.begin(), other.m_digits.end())) {
-    assert(isWellFormed());
-}
-
 BigUInt::BigUInt(const std::string &val) {
-    static const auto   maximumDecimalDigitsInSizeType = static_cast<size_t>(std::log10(std::numeric_limits<size_t>::max()));
-    static const size_t largestMultipleOfTenInSizeType = modPower(10ul, maximumDecimalDigitsInSizeType, std::numeric_limits<size_t>::max());
+    static const auto maximumDecimalDigitsInSizeType =
+        static_cast<size_t>(std::log10(std::numeric_limits<size_t>::max()));
+    static const size_t largestMultipleOfTenInSizeType =
+        modPower(10ul, maximumDecimalDigitsInSizeType, std::numeric_limits<size_t>::max());
 
     m_digits          = {0ul};
     size_t startIndex = val.length() % maximumDecimalDigitsInSizeType;
@@ -258,7 +253,8 @@ void BigUInt::bubble(size_t startIndex) {
 }
 
 void BigUInt::init(size_t val) {
-    static_assert(s_base <= std::numeric_limits<size_t>::max() / s_base, "s_base^2 should not exceed the maximum size_t");
+    static_assert(s_base <= std::numeric_limits<size_t>::max() / s_base,
+                  "s_base^2 should not exceed the maximum size_t");
     static_assert(s_base % 2 == 0, "s_base should be even");
     m_digits = {val};
     bubble();
@@ -269,10 +265,6 @@ bool BigUInt::operator==(const BigUInt &rhs) const {
     assert(rhs.isWellFormed());
 
     return m_digits == rhs.m_digits;
-}
-
-bool BigUInt::operator!=(const BigUInt &rhs) const {
-    return !(rhs == *this);
 }
 
 BigUInt &BigUInt::operator=(const BigUInt &rhs) {
@@ -287,7 +279,8 @@ BigUInt &BigUInt::operator+=(const BigUInt &rhs) {
     assert(isWellFormed() && rhs.isWellFormed());
 
     resize(std::max(digitCount(), rhs.digitCount()) + 1ul);
-    addViaIterators(rightToLeftBegin(), rightToLeftEnd(), rhs.rightToLeftConstBegin(), rhs.rightToLeftConstEnd());
+    addViaIterators(
+        rightToLeftBegin(), rightToLeftEnd(), rhs.rightToLeftConstBegin(), rhs.rightToLeftConstEnd());
     if (mostSignificantDigit() == 0ul) {
         resize(digitCount() - 1ul);
     }
@@ -298,11 +291,10 @@ BigUInt &BigUInt::operator+=(const BigUInt &rhs) {
 bool BigUInt::operator<(const BigUInt &rhs) const {
     assert(isWellFormed() && rhs.isWellFormed());
 
-    return lessThanViaIterators(leftToRightConstBegin(), leftToRightConstEnd(), rhs.leftToRightConstBegin(), rhs.leftToRightConstEnd());
-}
-
-bool BigUInt::operator>(const BigUInt &rhs) const {
-    return rhs < *this;
+    return lessThanViaIterators(leftToRightConstBegin(),
+                                leftToRightConstEnd(),
+                                rhs.leftToRightConstBegin(),
+                                rhs.leftToRightConstEnd());
 }
 
 bool BigUInt::operator<=(const BigUInt &rhs) const {
@@ -320,10 +312,6 @@ bool BigUInt::operator<=(const BigUInt &rhs) const {
         }
     }
     return true;
-}
-
-bool BigUInt::operator>=(const BigUInt &rhs) const {
-    return !(*this < rhs);
 }
 
 BigUInt &BigUInt::operator*=(const BigUInt &rhs) {
@@ -396,11 +384,6 @@ BigUInt &BigUInt::operator+=(size_t rhs) {
     return *this;
 }
 
-BigUInt &BigUInt::operator=(size_t rhs) {
-    init(rhs);
-    return *this;
-}
-
 size_t BigUInt::operator%(size_t mod) const {
     if (mod == 2ul) {
         return leastSignificantDigit() % 2ul;
@@ -459,7 +442,8 @@ BigUInt BigUInt::operator*(const BigUInt &rhs) const {
 BigUInt &BigUInt::operator-=(const BigUInt &rhs) {
     assert(rhs <= *this);
 
-    subtractViaIterators(rightToLeftBegin(), rightToLeftEnd(), rhs.rightToLeftConstBegin(), rhs.rightToLeftConstEnd());
+    subtractViaIterators(
+        rightToLeftBegin(), rightToLeftEnd(), rhs.rightToLeftConstBegin(), rhs.rightToLeftConstEnd());
     resizeToFit();
     return *this;
 }
@@ -513,10 +497,6 @@ BigUInt BigUInt::createRandom(size_t numberOfDigits) {
     return result;
 }
 
-size_t BigUInt::approximatePowerOfTen() const {
-    return static_cast<size_t>(std::log10(mostSignificantDigit() + 1ul) + (digitCount() - 1ul) * std::log10(DigitVector::s_base));
-}
-
 BigUInt BigUInt::createRandomFromDecimalDigits(size_t orderOfMagnitude) {
     assert(orderOfMagnitude > 0);
     const auto numberOfDigits = orderOfMagnitude * (std::log(10) / log(DigitVector::s_base)) + 1ul;
@@ -552,13 +532,19 @@ void BigUInt::divideByLessThanBase(size_t factor) {
 BigUInt BigUInt::toomCook_3(const BigUInt &m, const BigUInt &n) {
     const size_t i = std::max(m.digitCount() / 3, n.digitCount() / 3);
 
-    const BigInt m0 = BigUInt(std::vector<size_t>{m.rightToLeftConstBegin(), m.rightToLeftConstBegin() + i}, false);
-    const BigInt m1 = BigUInt(std::vector<size_t>{m.rightToLeftConstBegin() + i, m.rightToLeftConstBegin() + 2ul * i}, false);
-    const BigInt m2 = BigUInt(std::vector<size_t>{m.rightToLeftConstBegin() + 2ul * i, m.rightToLeftConstEnd()}, false);
+    const BigInt m0 =
+        BigUInt(std::vector<size_t>{m.rightToLeftConstBegin(), m.rightToLeftConstBegin() + i}, false);
+    const BigInt m1 = BigUInt(
+        std::vector<size_t>{m.rightToLeftConstBegin() + i, m.rightToLeftConstBegin() + 2ul * i}, false);
+    const BigInt m2 =
+        BigUInt(std::vector<size_t>{m.rightToLeftConstBegin() + 2ul * i, m.rightToLeftConstEnd()}, false);
 
-    const BigInt n0 = BigUInt(std::vector<size_t>{n.rightToLeftConstBegin(), n.rightToLeftConstBegin() + i}, false);
-    const BigInt n1 = BigUInt(std::vector<size_t>{n.rightToLeftConstBegin() + i, n.rightToLeftConstBegin() + 2ul * i}, false);
-    const BigInt n2 = BigUInt(std::vector<size_t>{n.rightToLeftConstBegin() + 2ul * i, n.rightToLeftConstEnd()}, false);
+    const BigInt n0 =
+        BigUInt(std::vector<size_t>{n.rightToLeftConstBegin(), n.rightToLeftConstBegin() + i}, false);
+    const BigInt n1 = BigUInt(
+        std::vector<size_t>{n.rightToLeftConstBegin() + i, n.rightToLeftConstBegin() + 2ul * i}, false);
+    const BigInt n2 =
+        BigUInt(std::vector<size_t>{n.rightToLeftConstBegin() + 2ul * i, n.rightToLeftConstEnd()}, false);
 
     BigInt       a0         = m0 * n0;
     const BigInt r_one      = (m0 + m1 + m2) * (n0 + n1 + n2);
@@ -584,28 +570,26 @@ BigUInt BigUInt::toomCook_3(const BigUInt &m, const BigUInt &n) {
     const BigUInt &u4 = a4.magnitude();
 
     u0.resize(m.digitCount() + n.digitCount() + 1ul);
-    addViaIterators(u0.rightToLeftBegin() + i, u0.rightToLeftEnd(), u1.rightToLeftConstBegin(), u1.rightToLeftConstEnd());
-    addViaIterators(u0.rightToLeftBegin() + 2ul * i, u0.rightToLeftEnd(), u2.rightToLeftConstBegin(), u2.rightToLeftConstEnd());
-    addViaIterators(u0.rightToLeftBegin() + 3ul * i, u0.rightToLeftEnd(), u3.rightToLeftConstBegin(), u3.rightToLeftConstEnd());
-    addViaIterators(u0.rightToLeftBegin() + 4ul * i, u0.rightToLeftEnd(), u4.rightToLeftConstBegin(), u4.rightToLeftConstEnd());
+    addViaIterators(
+        u0.rightToLeftBegin() + i, u0.rightToLeftEnd(), u1.rightToLeftConstBegin(), u1.rightToLeftConstEnd());
+    addViaIterators(u0.rightToLeftBegin() + 2ul * i,
+                    u0.rightToLeftEnd(),
+                    u2.rightToLeftConstBegin(),
+                    u2.rightToLeftConstEnd());
+    addViaIterators(u0.rightToLeftBegin() + 3ul * i,
+                    u0.rightToLeftEnd(),
+                    u3.rightToLeftConstBegin(),
+                    u3.rightToLeftConstEnd());
+    addViaIterators(u0.rightToLeftBegin() + 4ul * i,
+                    u0.rightToLeftEnd(),
+                    u4.rightToLeftConstBegin(),
+                    u4.rightToLeftConstEnd());
 
     u0.resizeToFit();
 
     BigUInt result;
     swap(result.m_digits, u0.m_digits);
     return result;
-}
-
-BigUInt operator+(size_t lhs, const BigUInt &rhs) {
-    return rhs + lhs;
-}
-
-BigUInt operator-(size_t lhs, const BigUInt &rhs) {
-    return BigUInt(rhs) + lhs;
-}
-
-BigUInt operator*(size_t lhs, const BigUInt &rhs) {
-    return rhs * lhs;
 }
 
 BigUInt BigUInt::operator/(size_t divisor) const {
