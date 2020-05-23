@@ -367,22 +367,20 @@ void BigUInt::square() {
 }
 
 BigUInt &BigUInt::operator*=(const size_t rhs) {
-    if (rhs == 0) {
+    if (rhs == 0 || *this == BigUInt(0ul)) {
         init(0);
         return *this;
     }
-    reserve(digitCount() + 3ul);
     if (rhs != 1ul) {
         if (rhs < s_base) {
-            for (auto &it : m_digits) {
-                it *= rhs;
-            }
-            bubble();
+            resize(digitCount() + 1ul);
+            multiplyBySmallNumberViaIterators(leftToRightBegin(), leftToRightEnd(), rhs);
+            resizeToFit();
         } else {
+            reserve(digitCount() + 3ul);
             *this *= BigUInt(rhs);
         }
     }
-    resizeToFit();
     return *this;
 }
 

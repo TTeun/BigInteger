@@ -14,13 +14,13 @@ class BigInt {
 public:
     BigInt();
 
-    BigInt(BigUInt &&magnitude);
-
-    explicit BigInt(const BigUInt &other);
-
     BigInt(BigInt &&other) noexcept;
 
     BigInt(const BigInt &other);
+
+    BigInt(BigUInt &&magnitude);
+
+    explicit BigInt(const BigUInt &other);
 
     explicit BigInt(const std::string &val);
 
