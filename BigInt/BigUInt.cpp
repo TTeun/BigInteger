@@ -93,7 +93,7 @@ size_t BigUInt::divisionSubRoutine(const leftToRightConstIterator &leftToRightCo
     return quotientEstimate + correction;
 }
 
-BigUInt longDivision(BigUInt &dividend, const BigUInt &divisor) {
+BigUInt BigUInt::longDivision(BigUInt &dividend, const BigUInt &divisor) {
     if (dividend < divisor) {
         return 0ul;
     }
@@ -106,7 +106,7 @@ BigUInt longDivision(BigUInt &dividend, const BigUInt &divisor) {
     }
 }
 
-BigUInt longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divisor) {
+BigUInt BigUInt::longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divisor) {
     assert(divisor <= dividend);
     assert(divisor.mostSignificantDigit() * 2ul >= BigUInt::s_base);
 

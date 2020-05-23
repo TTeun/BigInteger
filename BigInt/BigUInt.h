@@ -98,9 +98,9 @@ private:
                                      const std::vector<size_t>::iterator &              rightToLeftEnd,
                                      const BigUInt &                                    divisor);
 
-    friend BigUInt longDivision(BigUInt &dividend, const BigUInt &divisor);
+    static BigUInt longDivision(BigUInt &dividend, const BigUInt &divisor);
 
-    friend BigUInt longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divisor);
+    static BigUInt longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divisor);
 
     void square();
 
