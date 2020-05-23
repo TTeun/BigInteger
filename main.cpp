@@ -1,3 +1,5 @@
+#define NDEBUG
+
 #include "BigInt/BigInt.h"
 #include "BigInt/BigUInt.h"
 #include "timer.h"
@@ -7,22 +9,6 @@
 #include <iostream>
 
 int main() {
-
-    //    std::vector<size_t> vec = {0, DigitVector::s_base - 1ul,DigitVector::s_base - 1ul};
-    //    for (auto it : vec){
-    //        std::cout << it << " " ;
-    //    }
-    //    std::cout << '\n';
-    //
-    //    BigUIntBase::multiplyBySmallNumberViaIterators(vec.rbegin(), vec.rend(), 6);
-    //
-    //    for (auto it : vec){
-    //        std::cout << it << " " ;
-    //    }
-    //    std::cout << '\n';
-    //
-    //    return 0;
-
     mpz_t n1;
     mpz_init(n1);
     mpz_set_str(n1, "21983712987319237912389139871982398127398712312312312312", 10);

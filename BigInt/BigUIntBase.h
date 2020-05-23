@@ -8,9 +8,9 @@ class BigUIntBase : public DigitVector {
 public:
     BigUIntBase();
 
-    BigUIntBase(rightToLeftConstIterator it, rightToLeftConstIterator endIt);
-
     explicit BigUIntBase(std::vector<size_t> &&digits);
+
+    BigUIntBase(rightToLeftConstIterator it, rightToLeftConstIterator endIt);
 
 protected:
     static const size_t s_karatsubaLowerLimit = 200ul;
@@ -36,10 +36,6 @@ protected:
                                      rightToLeftConstIterator        copyIt,
                                      const rightToLeftConstIterator &copyEnd);
 
-public:
-    static void multiplyBySmallNumberViaIterators(leftToRightIterator resultIt, leftToRightIterator resultEnd, const size_t rhs);
-
-protected:
     static void addMultipleViaIterators(rightToLeftIterator                 thisIt,
                                         rightToLeftIterator                 thisEnd,
                                         std::vector<size_t>::const_iterator rhsIt,
@@ -55,17 +51,6 @@ protected:
                                      rightToLeftIterator                 thisEnd,
                                      std::vector<size_t>::const_iterator rhsIt,
                                      std::vector<size_t>::const_iterator rhsEnd);
-
-    static void subtractViaIterators(leftToRightIterator            thisIt,
-                                     const leftToRightIterator      thisEnd,
-                                     leftToRightConstIterator       rhsIt,
-                                     const leftToRightConstIterator rhsEnd);
-
-    static void subtractShiftedViaIterators(leftToRightIterator            thisIt,
-                                            const leftToRightIterator      thisEnd,
-                                            leftToRightConstIterator       rhsIt,
-                                            const leftToRightConstIterator rhsEnd,
-                                            const size_t                   shiftAmount);
 
     static bool lessThanViaIterators(const leftToRightConstIterator &thisIt,
                                      const leftToRightConstIterator &thisEnd,

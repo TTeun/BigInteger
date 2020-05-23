@@ -1,9 +1,10 @@
-#ifndef TEUN_GAME_TIMER_H
-#define TEUN_GAME_TIMER_H
+#ifndef __BIG_INT__H__
+#define __BIG_INT__H__
 
 #include <chrono>
 #include <iostream>
 #include <utility>
+
 class Timer {
 
 public:
@@ -17,4 +18,4 @@ private:
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 };
 
-#endif // TEUN_GAME_TIMER_H
+#endif // __BIG_INT__H__

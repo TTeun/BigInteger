@@ -77,7 +77,7 @@ size_t BigUInt::divisionSubRoutine(const leftToRightConstIterator &leftToRightCo
     } else {
         quotientEstimate = (*leftToRightConstIt * BigUInt::s_base + *(leftToRightConstIt + 1ul)) / divisor.mostSignificantDigit();
     }
-    quotientEstimate    = std::min(quotientEstimate, DigitVector::s_base - 1ul);
+    quotientEstimate    = std::min(quotientEstimate, DigitVector::s_maxDigit);
     const size_t offset = *leftToRightConstIt == 0 ? 1ul : 0ul;
 
     auto closestMultipleEstimate = divisor * quotientEstimate;
@@ -371,13 +371,14 @@ BigUInt &BigUInt::operator*=(const size_t rhs) {
         init(0);
         return *this;
     }
+    reserve(digitCount() + 3ul);
     if (rhs != 1ul) {
         if (rhs < s_base) {
-            resize(digitCount() + 1ul);
-            multiplyBySmallNumberViaIterators(leftToRightBegin(), leftToRightEnd(), rhs);
-            resizeToFit();
+            for (auto &it : m_digits) {
+                it *= rhs;
+            }
+            bubble();
         } else {
-            reserve(digitCount() + 3ul);
             *this *= BigUInt(rhs);
         }
     }
@@ -478,16 +479,6 @@ BigUInt BigUInt::operator+(const BigUInt &rhs) const {
     return copy += rhs;
 }
 
-BigUInt BigUInt::copyPrefix(size_t length) const {
-    assert(length <= digitCount());
-    return BigUInt(std::vector<size_t>(rightToLeftConstEnd() - length, rightToLeftConstEnd()), true);
-}
-
-BigUInt BigUInt::copySuffix(size_t length) const {
-    assert(length <= digitCount());
-    return BigUInt(std::vector<size_t>(rightToLeftConstBegin(), rightToLeftConstBegin() + length), true);
-}
-
 BigUInt &BigUInt::operator%=(const BigUInt &mod) {
     assert(mod != 0ul);
 
@@ -508,8 +499,8 @@ BigUInt &BigUInt::operator%=(const BigUInt &mod) {
 
 BigUInt BigUInt::createRandom(size_t numberOfDigits) {
     assert(numberOfDigits > 0ul);
-    std::random_device                    rd;        // Will be used to obtain a seed for the random number engine
-    std::mt19937                          gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+    std::random_device                    rd;
+    std::mt19937                          gen(rd());
     std::uniform_int_distribution<size_t> dis(0, DigitVector::s_maxDigit);
 
     BigUInt result(0ul);

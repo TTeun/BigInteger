@@ -130,23 +130,6 @@ void BigUIntBase::multiplyViaIterators(rightToLeftIterator             resultIt,
     }
 }
 
-void BigUIntBase::multiplyBySmallNumberViaIterators(leftToRightIterator resultIt, leftToRightIterator resultEnd, const size_t rhs) {
-    assert(rhs < s_base);
-    --resultEnd;
-    size_t carry = 0ul;
-    for (; resultIt != resultEnd; --resultEnd) {
-        (*resultEnd) *= rhs;
-        (*resultEnd) += carry;
-        if (*resultEnd >= s_base) {
-            carry = (*resultEnd) / s_base;
-            (*resultEnd) %= s_base;
-        } else {
-            carry = 0ul;
-        }
-    }
-    *resultIt += carry;
-}
-
 void BigUIntBase::splitOneMultiplicationViaIterators(rightToLeftIterator             resultIt,
                                                      const rightToLeftIterator &     resultEnd,
                                                      rightToLeftConstIterator        rhsIt,

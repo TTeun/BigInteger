@@ -89,10 +89,6 @@ public:
 
     friend BigUInt power(const BigUInt &base, size_t exponent);
 
-    BigUInt copyPrefix(size_t length) const;
-
-    BigUInt copySuffix(size_t length) const;
-
     void divideByLessThanBase(size_t factor);
 
 private:

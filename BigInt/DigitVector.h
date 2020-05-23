@@ -14,11 +14,7 @@ typedef std::vector<size_t>::const_iterator         rightToLeftConstIterator;
 class DigitVector {
 
 public:
-//            static const size_t s_base =
-//                static_cast<size_t>(std::sqrt(std::numeric_limits<size_t>::max()) - 1ul) & (std::numeric_limits<size_t>::max() - 1ul);
-
-//    static const size_t s_base = 10ul;
-        static const size_t s_base = 1000000000ul;
+    static const size_t s_base = 1000000000ul;
 
     static const size_t s_maxDigit = s_base - 1ul;
 
