@@ -49,29 +49,29 @@ namespace big {
         bool isCorrectlySized() const;
 
         /***************** Iterators *****************/
-        lrIterator leftToRightBegin() {
+        lrIterator lrBegin() {
             return m_digits.rbegin();
         }
-        lrIterator leftToRightEnd() {
+        lrIterator lrEnd() {
             return m_digits.rend();
         }
-        rlIterator rightToLeftEnd() {
+        rlIterator rlBegin() {
+            return m_digits.begin();
+        }
+        rlIterator rlEnd() {
             return m_digits.end();
         }
-        lrcIterator leftToRightConstBegin() const {
+        lrcIterator lrcBegin() const {
             return m_digits.crbegin();
         }
-        lrcIterator leftToRightConstEnd() const {
+        lrcIterator lrcEnd() const {
             return m_digits.crend();
         }
-        rlcIterator rightToLeftConstBegin() const {
+        rlcIterator rlcBegin() const {
             return m_digits.cbegin();
         }
-        rlcIterator rightToLeftConstEnd() const {
+        rlcIterator rlcEnd() const {
             return m_digits.cend();
-        }
-        rlIterator rightToLeftBegin() {
-            return m_digits.begin();
         }
 
         /***************** Vector functions *****************/
@@ -85,7 +85,7 @@ namespace big {
             m_digits.resize(size);
         }
         void shift(size_t shiftAmount) {
-            m_digits.insert(rightToLeftBegin(), shiftAmount, 0);
+            m_digits.insert(rlBegin(), shiftAmount, 0);
         }
         static void resizeToFitVector(std::vector<size_t> &digits);
 

@@ -95,6 +95,7 @@ namespace big {
         /***************** Builders *****************/
         static BigUInt createRandom(size_t numberOfDigits);
         static BigUInt createRandomFromDecimalDigits(size_t orderOfMagnitude);
+        static BigUInt createWithRoom(size_t digitCount);
 
         /***************** Output *****************/
         std::string toString() const;
@@ -111,8 +112,11 @@ namespace big {
         /** Addition **/
         static void carryAdditionViaIterators(rlIterator thisIt, const rlIterator thisEnd, size_t carry);
         static void addViaIterators(rlIterator thisIt, const rlIterator thisEnd, rlcIterator rhsIt, const rlcIterator rhsEnd);
-        static void addMultipleViaIterators(
-            rlIterator thisIt, const rlIterator thisEnd, rlcIterator rhsIt, const rlcIterator rhsEnd, const size_t multiplier);
+        static void addMultipleViaIterators(rlIterator resultIt,
+                                            const rlIterator resultEnd,
+                                            rlcIterator rhsIt,
+                                            const rlcIterator rhsEnd,
+                                            const size_t multiplier);
         static void
         subtractViaIterators(rlIterator thisIt, const rlIterator thisEnd, rlcIterator rhsIt, const rlcIterator rhsEnd);
 

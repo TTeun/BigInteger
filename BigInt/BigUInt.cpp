@@ -93,7 +93,7 @@ namespace big {
         assert(isWellFormed() && rhs.isWellFormed());
 
         resize(std::max(digitCount(), rhs.digitCount()) + 1ul);
-        addViaIterators(rightToLeftBegin(), rightToLeftEnd(), rhs.rightToLeftConstBegin(), rhs.rightToLeftConstEnd());
+        addViaIterators(rlBegin(), rlEnd(), rhs.rlcBegin(), rhs.rlcEnd());
         if (mostSignificantDigit() == 0ul) { resize(digitCount() - 1ul); }
 
         return *this;
@@ -102,7 +102,7 @@ namespace big {
     BigUInt &BigUInt::operator+=(size_t rhs) {
         static const size_t additionRoom = std::numeric_limits<size_t>::max() - s_base;
         if (rhs <= additionRoom) {
-            *rightToLeftBegin() += rhs;
+            *rlBegin() += rhs;
             bubble();
         } else {
             *this += BigUInt(rhs);
@@ -124,7 +124,7 @@ namespace big {
     BigUInt &BigUInt::operator-=(const BigUInt &rhs) {
         assert(rhs <= *this);
 
-        subtractViaIterators(rightToLeftBegin(), rightToLeftEnd(), rhs.rightToLeftConstBegin(), rhs.rightToLeftConstEnd());
+        subtractViaIterators(rlBegin(), rlEnd(), rhs.rlcBegin(), rhs.rlcEnd());
         resizeToFit();
         return *this;
     }
@@ -143,7 +143,7 @@ namespace big {
         if (rhs != 1ul) {
             if (rhs < s_base) {
                 resize(digitCount() + 1ul);
-                multiplyBySingleDigitViaIterators(rightToLeftBegin(), rightToLeftEnd(), rhs);
+                multiplyBySingleDigitViaIterators(rlBegin(), rlEnd(), rhs);
                 resizeToFit();
             } else {
                 reserve(digitCount() + 3ul);
@@ -245,8 +245,7 @@ namespace big {
         if (mod == 2ul) { return leastSignificantDigit() % 2ul; }
         if (mod >= std::numeric_limits<size_t>::max() / mod) {
             auto copy = *this % BigUInt(mod);
-            return copy.leastSignificantDigit() + s_base * *(copy.rightToLeftConstBegin() + 1) +
-                   s_base * s_base * copy.mostSignificantDigit();
+            return copy.leastSignificantDigit() + s_base * *(copy.rlcBegin() + 1) + s_base * s_base * copy.mostSignificantDigit();
         }
         size_t result = 0ul;
         for (size_t i = 0; i != digitCount(); ++i) {
@@ -279,8 +278,7 @@ namespace big {
     bool BigUInt::operator<(const BigUInt &rhs) const {
         assert(isWellFormed() && rhs.isWellFormed());
 
-        return lessThanViaIterators(
-            leftToRightConstBegin(), leftToRightConstEnd(), rhs.leftToRightConstBegin(), rhs.leftToRightConstEnd());
+        return lessThanViaIterators(lrcBegin(), lrcEnd(), rhs.lrcBegin(), rhs.lrcEnd());
     }
 
     bool BigUInt::operator<=(const BigUInt &rhs) const {
@@ -288,9 +286,9 @@ namespace big {
 
         if (digitCount() != rhs.digitCount()) { return digitCount() < rhs.digitCount(); }
 
-        auto thisIt = leftToRightConstBegin();
-        auto rhsIt = rhs.leftToRightConstBegin();
-        for (; thisIt != leftToRightConstEnd(); ++thisIt, ++rhsIt) {
+        auto thisIt = lrcBegin();
+        auto rhsIt = rhs.lrcBegin();
+        for (; thisIt != lrcEnd(); ++thisIt, ++rhsIt) {
             if (*thisIt != *rhsIt) { return *thisIt <= *rhsIt; }
         }
         return true;
@@ -348,21 +346,23 @@ namespace big {
         return result;
     }
 
+    BigUInt BigUInt::createWithRoom(size_t digitCount) {
+        BigUInt result;
+        result.reserve(digitCount);
+        return result;
+    }
+
     /***************** Output *****************/
     std::string BigUInt::toString() const {
         std::stringstream ss;
-        ss << *leftToRightConstBegin();
-        for (auto it = leftToRightConstBegin() + 1ul; it != leftToRightConstEnd(); ++it) {
-            ss << std::setfill('0') << std::setw(s_digitsPerLimb) << *it;
-        }
+        ss << *lrcBegin();
+        for (auto it = lrcBegin() + 1ul; it != lrcEnd(); ++it) { ss << std::setfill('0') << std::setw(s_digitsPerLimb) << *it; }
         return ss.str();
     }
 
     std::ostream &operator<<(std::ostream &os, const BigUInt &bigUnsignedInt) {
         os << "( ";
-        for (auto it = bigUnsignedInt.leftToRightConstBegin(); it != bigUnsignedInt.leftToRightConstEnd(); ++it) {
-            os << *it << " ";
-        }
+        for (auto it = bigUnsignedInt.lrcBegin(); it != bigUnsignedInt.lrcEnd(); ++it) { os << *it << " "; }
         os << ")_" << BigUInt::s_base;
         return os;
     }
@@ -379,10 +379,10 @@ namespace big {
         assert(not m_digits.empty());
         assert(startIndex < digitCount());
 
-        auto it = rightToLeftBegin() + startIndex;
+        auto it = rlBegin() + startIndex;
         auto next = it + 1;
 
-        for (; next != rightToLeftEnd(); ++it, ++next) {
+        for (; next != rlEnd(); ++it, ++next) {
             if (*it >= s_base) {
                 *next += *it / s_base;
                 *it %= s_base;
@@ -407,7 +407,7 @@ namespace big {
         assert(factor < s_base);
 
         size_t carry = 0ul;
-        for (auto thisIt = leftToRightBegin(); thisIt != leftToRightEnd(); ++thisIt) {
+        for (auto thisIt = lrBegin(); thisIt != lrEnd(); ++thisIt) {
             *thisIt += carry * s_base;
             carry = *thisIt % factor;
             *thisIt /= factor;
@@ -445,21 +445,21 @@ namespace big {
     }
 
     void BigUInt::addMultipleViaIterators(
-        rlIterator thisIt, rlIterator thisEnd, rlcIterator rhsIt, rlcIterator rhsEnd, size_t multiplier) {
+        rlIterator resultIt, rlIterator resultEnd, rlcIterator rhsIt, rlcIterator rhsEnd, size_t multiplier) {
         if (multiplier == 0ul) { return; }
         assert(multiplier < DigitVector::s_base);
-        assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l);
+        assert(std::distance(resultIt, resultEnd) >= std::distance(rhsIt, rhsEnd) + 1l);
         size_t carry = 0ul;
-        for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
-            *thisIt += (*rhsIt * multiplier) + carry;
-            if (*thisIt >= DigitVector::s_base) {
-                carry = (*thisIt) / DigitVector::s_base;
-                *thisIt %= DigitVector::s_base;
+        for (; rhsIt != rhsEnd; ++resultIt, ++rhsIt) {
+            *resultIt += (*rhsIt * multiplier) + carry;
+            if (*resultIt >= DigitVector::s_base) {
+                carry = (*resultIt) / DigitVector::s_base;
+                *resultIt %= DigitVector::s_base;
             } else {
                 carry = 0ul;
             }
         }
-        if (carry > 0UL) { carryAdditionViaIterators(thisIt, thisEnd, carry); }
+        if (carry > 0UL) { carryAdditionViaIterators(resultIt, resultEnd, carry); }
     }
 
     void BigUInt::subtractViaIterators(rlIterator thisIt, rlIterator thisEnd, rlcIterator rhsIt, rlcIterator rhsEnd) {
@@ -493,12 +493,8 @@ namespace big {
         BigUInt result;
         result.resize(smaller.digitCount() + larger.digitCount() + 1);
 
-        multiplyViaIterators(result.rightToLeftBegin(),
-                             result.rightToLeftEnd(),
-                             smaller.rightToLeftConstBegin(),
-                             smaller.rightToLeftConstEnd(),
-                             larger.rightToLeftConstBegin(),
-                             larger.rightToLeftConstEnd());
+        multiplyViaIterators(
+            result.rlBegin(), result.rlEnd(), smaller.rlcBegin(), smaller.rlcEnd(), larger.rlcBegin(), larger.rlcEnd());
         result.resizeToFit();
         assert(result.isWellFormed());
         return result;
@@ -527,6 +523,7 @@ namespace big {
         assert((largeEnd - largeIt) >= (smallEnd - smallIt));
 
         const auto m = static_cast<size_t>(smallEnd - smallIt);
+        const auto n = static_cast<size_t>(largeEnd - largeIt);
         assert(m >= s_karatsubaLowerLimit);
         const size_t splitIndex = m / 2ul;
 
@@ -535,41 +532,39 @@ namespace big {
 
         BigUInt z0;
         z0.resize(2ul * splitIndex + 1ul);
-        multiplyViaIterators(
-            z0.rightToLeftBegin(), z0.rightToLeftEnd(), smallIt, smallIt + splitIndex, largeIt, largeIt + splitIndex);
+        multiplyViaIterators(z0.rlBegin(), z0.rlEnd(), smallIt, smallIt + splitIndex, largeIt, largeIt + splitIndex);
         z0.resizeToFit();
 
         BigUInt z2;
-        z2.resize((smallEnd - smallIt - splitIndex) + (largeEnd - largeIt - splitIndex) + 1ul);
-        multiplyViaIterators(
-            z2.rightToLeftBegin(), z2.rightToLeftEnd(), smallIt + splitIndex, smallEnd, largeIt + splitIndex, largeEnd);
+        z2.resize((m % 2ul) + n + 1ul);
+        multiplyViaIterators(z2.rlBegin(), z2.rlEnd(), smallIt + splitIndex, smallEnd, largeIt + splitIndex, largeEnd);
         z2.resizeToFit();
 
         high1.resize(high1.digitCount() + 1ul);
         high2.resize(high2.digitCount() + 1ul);
 
-        addViaIterators(high1.rightToLeftBegin(), high1.rightToLeftEnd(), largeIt, largeIt + splitIndex);
-        addViaIterators(high2.rightToLeftBegin(), high2.rightToLeftEnd(), smallIt, smallIt + splitIndex);
+        addViaIterators(high1.rlBegin(), high1.rlEnd(), largeIt, largeIt + splitIndex);
+        addViaIterators(high2.rlBegin(), high2.rlEnd(), smallIt, smallIt + splitIndex);
 
         BigUInt z1;
-        z1.resize((smallEnd - smallIt - splitIndex) + (largeEnd - largeIt - splitIndex) + 3ul);
+        z1.resize((m % 2ul) + n + 3ul);
 
         high1.resizeToFit();
         high2.resizeToFit();
 
-        multiplyViaIterators(z1.rightToLeftBegin(),
-                             z1.rightToLeftEnd(),
-                             high1.rightToLeftConstBegin(),
-                             high1.rightToLeftConstEnd(),
-                             high2.rightToLeftConstBegin(),
-                             high2.rightToLeftConstEnd()); // z1 = (high1 + low1) * (high2 + low2);
+        multiplyViaIterators(z1.rlBegin(),
+                             z1.rlEnd(),
+                             high1.rlcBegin(),
+                             high1.rlcEnd(),
+                             high2.rlcBegin(),
+                             high2.rlcEnd()); // z1 = (high1 + low1) * (high2 + low2);
 
-        subtractViaIterators(z1.rightToLeftBegin(), z1.rightToLeftEnd(), z2.rightToLeftConstBegin(), z2.rightToLeftConstEnd());
-        subtractViaIterators(z1.rightToLeftBegin(), z1.rightToLeftEnd(), z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
+        subtractViaIterators(z1.rlBegin(), z1.rlEnd(), z2.rlcBegin(), z2.rlcEnd());
+        subtractViaIterators(z1.rlBegin(), z1.rlEnd(), z0.rlcBegin(), z0.rlcEnd());
 
-        addViaIterators(resultIt, resultEnd, z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
-        addViaIterators(resultIt + 2ul * splitIndex, resultEnd, z2.rightToLeftConstBegin(), z2.rightToLeftConstEnd());
-        addViaIterators(resultIt + splitIndex, resultEnd, z1.rightToLeftConstBegin(), z1.rightToLeftConstEnd());
+        addViaIterators(resultIt, resultEnd, z0.rlcBegin(), z0.rlcEnd());
+        addViaIterators(resultIt + 2ul * splitIndex, resultEnd, z2.rlcBegin(), z2.rlcEnd());
+        addViaIterators(resultIt + splitIndex, resultEnd, z1.rlcBegin(), z1.rlcEnd());
     }
 
     void BigUInt::splitOneMultiplicationViaIterators(rlIterator resultIt,
@@ -580,21 +575,22 @@ namespace big {
                                                      rlcIterator largeEnd) {
         const auto m = static_cast<size_t>(largeEnd - largeIt);
         assert(m >= s_karatsubaLowerLimit);
+        const auto n = static_cast<size_t>(smallEnd - smallIt);
         const size_t splitIndex = m / 2ul;
 
         BigUInt z0;
-        z0.resize(splitIndex + (smallEnd - smallIt) + 1ul);
-        multiplyViaIterators(z0.rightToLeftBegin(), z0.rightToLeftEnd(), largeIt, largeIt + splitIndex, smallIt, smallEnd);
+        z0.resize(splitIndex + n + 1ul);
+        multiplyViaIterators(z0.rlBegin(), z0.rlEnd(), largeIt, largeIt + splitIndex, smallIt, smallEnd);
         z0.resizeToFit();
 
-        addViaIterators(resultIt, resultEnd, z0.rightToLeftConstBegin(), z0.rightToLeftConstEnd());
+        addViaIterators(resultIt, resultEnd, z0.rlcBegin(), z0.rlcEnd());
 
         BigUInt z1;
-        z1.resize((largeEnd - (largeIt + splitIndex)) + (smallEnd - smallIt) + 1ul);
-        multiplyViaIterators(z1.rightToLeftBegin(), z1.rightToLeftEnd(), largeIt + splitIndex, largeEnd, smallIt, smallEnd);
+        z1.resize(m - splitIndex + n + 1ul);
+        multiplyViaIterators(z1.rlBegin(), z1.rlEnd(), largeIt + splitIndex, largeEnd, smallIt, smallEnd);
         z1.resizeToFit();
 
-        addViaIterators(resultIt + splitIndex, resultEnd, z1.rightToLeftConstBegin(), z1.rightToLeftConstEnd());
+        addViaIterators(resultIt + splitIndex, resultEnd, z1.rlcBegin(), z1.rlcEnd());
     }
 
     void BigUInt::multiplySortedViaIterators(rlIterator resultIt,
@@ -650,8 +646,7 @@ namespace big {
         const BigInt n1{BigUInt(std::vector<size_t>{copyIt + i, copyIt + 2ul * i}, false)};
         const BigInt n2{BigUInt(std::vector<size_t>{copyIt + 2ul * i, copyEnd}, false)};
 
-        // Towards Optimal Toom-Cook Multiplication for Univariate and Multivariate Polynomials in Characteristic 2 and 0
-        // By Bodrato
+        // See Bodrato paper on Toom Cook
         const BigInt p_aux = m0 + m2;
         const BigInt p_minusOne = p_aux - m1;
         const BigInt p_minusTwo = 2ul * (p_minusOne + m2) - m0;
@@ -676,14 +671,11 @@ namespace big {
         a2 = a2 + a1 - a4;
         a1 -= a3;
 
-        addViaIterators(resultIt, resultEnd, a0.magnitude().rightToLeftConstBegin(), a0.magnitude().rightToLeftConstEnd());
-        addViaIterators(resultIt + i, resultEnd, a1.magnitude().rightToLeftConstBegin(), a1.magnitude().rightToLeftConstEnd());
-        addViaIterators(
-            resultIt + 2ul * i, resultEnd, a2.magnitude().rightToLeftConstBegin(), a2.magnitude().rightToLeftConstEnd());
-        addViaIterators(
-            resultIt + 3ul * i, resultEnd, a3.magnitude().rightToLeftConstBegin(), a3.magnitude().rightToLeftConstEnd());
-        addViaIterators(
-            resultIt + 4ul * i, resultEnd, a4.magnitude().rightToLeftConstBegin(), a4.magnitude().rightToLeftConstEnd());
+        addViaIterators(resultIt, resultEnd, a0.magnitude().rlcBegin(), a0.magnitude().rlcEnd());
+        addViaIterators(resultIt + i, resultEnd, a1.magnitude().rlcBegin(), a1.magnitude().rlcEnd());
+        addViaIterators(resultIt + 2ul * i, resultEnd, a2.magnitude().rlcBegin(), a2.magnitude().rlcEnd());
+        addViaIterators(resultIt + 3ul * i, resultEnd, a3.magnitude().rlcBegin(), a3.magnitude().rlcEnd());
+        addViaIterators(resultIt + 4ul * i, resultEnd, a4.magnitude().rlcBegin(), a4.magnitude().rlcEnd());
     }
 
     void BigUInt::schoolMultiply(rlIterator resultIt,
@@ -692,9 +684,10 @@ namespace big {
                                  rlcIterator smallEnd,
                                  rlcIterator largeIt,
                                  rlcIterator largeEnd) {
-        for (size_t i = 0; largeIt != largeEnd; ++i) {
-            addMultipleViaIterators(resultIt + i, resultEnd, smallIt, smallEnd, *largeIt);
-            ++largeIt;
+        assert((largeEnd - largeIt) >= (smallEnd - smallIt));
+        for (size_t i = 0; smallIt != smallEnd; ++i) {
+            addMultipleViaIterators(resultIt + i, resultEnd, largeIt, largeEnd, *smallIt);
+            ++smallIt;
         }
     }
 
@@ -704,22 +697,18 @@ namespace big {
                                        const rlIterator rightToLeftIt,
                                        const rlIterator rightToLeftEnd,
                                        const BigUInt &divisor) {
-        if (lessThanViaIterators(
-                leftToRightConstIt, leftToRightConstEnd, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd())) {
-            return 0ul;
-        }
+        if (lessThanViaIterators(leftToRightConstIt, leftToRightConstEnd, divisor.lrcBegin(), divisor.lrcEnd())) { return 0ul; }
         assert(divisor != 0ul);
         assert(divisor.mostSignificantDigit() * 2ul >= BigUInt::s_base);
         const size_t n = divisor.digitCount();
         const auto m = static_cast<size_t>(leftToRightConstEnd - leftToRightConstIt);
         assert(m <= n + 1ul);
         assert(m >= n);
-        size_t correction = 0ul;
 
+        size_t correction = 0ul;
         while (not lessThanShiftedRhsViaIterators(
-            leftToRightConstIt, leftToRightConstEnd, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd(), 1)) {
-            subtractViaIterators(
-                rightToLeftIt + 1ul, rightToLeftEnd, divisor.rightToLeftConstBegin(), divisor.rightToLeftConstEnd());
+            leftToRightConstIt, leftToRightConstEnd, divisor.lrcBegin(), divisor.lrcEnd(), 1)) {
+            subtractViaIterators(rightToLeftIt + 1ul, rightToLeftEnd, divisor.rlcBegin(), divisor.rlcEnd());
             correction += BigUInt::s_base;
         }
 
@@ -733,22 +722,19 @@ namespace big {
         quotientEstimate = std::min(quotientEstimate, DigitVector::s_maxDigit);
         const size_t offset = *leftToRightConstIt == 0 ? 1ul : 0ul;
 
-        BigUInt closestMultipleEstimate = divisor;
+        BigUInt closestMultipleEstimate = createWithRoom(divisor.digitCount() + 1ul);
+        closestMultipleEstimate = divisor;
         closestMultipleEstimate.resize(closestMultipleEstimate.digitCount() + 1ul);
-        multiplyBySingleDigitViaIterators(
-            closestMultipleEstimate.rightToLeftBegin(), closestMultipleEstimate.rightToLeftEnd(), quotientEstimate);
+        multiplyBySingleDigitViaIterators(closestMultipleEstimate.rlBegin(), closestMultipleEstimate.rlEnd(), quotientEstimate);
         closestMultipleEstimate.resizeToFit();
-        while (greaterThanViaIterators(closestMultipleEstimate.leftToRightConstBegin(),
-                                       closestMultipleEstimate.leftToRightConstEnd(),
+        while (greaterThanViaIterators(closestMultipleEstimate.lrcBegin(),
+                                       closestMultipleEstimate.lrcEnd(),
                                        leftToRightConstIt + offset,
                                        leftToRightConstEnd)) {
             --quotientEstimate;
             closestMultipleEstimate -= divisor;
         }
-        subtractViaIterators(rightToLeftIt,
-                             rightToLeftEnd,
-                             closestMultipleEstimate.rightToLeftConstBegin(),
-                             closestMultipleEstimate.rightToLeftConstEnd());
+        subtractViaIterators(rightToLeftIt, rightToLeftEnd, closestMultipleEstimate.rlcBegin(), closestMultipleEstimate.rlcEnd());
         return quotientEstimate + correction;
     }
 
@@ -762,6 +748,7 @@ namespace big {
             return longDivisionAfterAdjustingDivisor(dividend, divisor);
         }
     }
+
     BigUInt BigUInt::longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divisor) {
         assert(divisor <= dividend);
         assert(divisor.mostSignificantDigit() * 2ul >= BigUInt::s_base);
@@ -770,32 +757,23 @@ namespace big {
         const size_t n = divisor.digitCount();
 
         if (m <= n + 1) {
-            return BigUInt::divisionSubRoutine(dividend.leftToRightConstBegin(),
-                                               dividend.leftToRightConstEnd(),
-                                               dividend.rightToLeftBegin(),
-                                               dividend.rightToLeftEnd(),
-                                               divisor);
+            return BigUInt::divisionSubRoutine(
+                dividend.lrcBegin(), dividend.lrcEnd(), dividend.rlBegin(), dividend.rlEnd(), divisor);
         }
 
         std::vector<size_t> divisorDigits(m - n + 1ul, 0ul);
         while (m > n + 1) {
             const size_t splitIndex = m - n - 1ul;
-            divisorDigits[splitIndex] = BigUInt::divisionSubRoutine(dividend.leftToRightConstBegin(),
-                                                                    dividend.leftToRightConstBegin() + n + 1,
-                                                                    dividend.rightToLeftBegin() + splitIndex,
-                                                                    dividend.rightToLeftEnd(),
-                                                                    divisor);
+            divisorDigits[splitIndex] = BigUInt::divisionSubRoutine(
+                dividend.lrcBegin(), dividend.lrcBegin() + n + 1, dividend.rlBegin() + splitIndex, dividend.rlEnd(), divisor);
             // The first n + 1 digits of dividend now contain their remainder after division by divisor, as per
             // the divisionSubRoutine
             dividend.resizeToFit();
             m = dividend.digitCount();
         }
         if (m > n || dividend.mostSignificantDigit() >= divisor.mostSignificantDigit()) {
-            divisorDigits[0ul] = BigUInt::divisionSubRoutine(dividend.leftToRightConstBegin(),
-                                                             dividend.leftToRightConstEnd(),
-                                                             dividend.rightToLeftBegin(),
-                                                             dividend.rightToLeftEnd(),
-                                                             divisor);
+            divisorDigits[0ul] = BigUInt::divisionSubRoutine(
+                dividend.lrcBegin(), dividend.lrcEnd(), dividend.rlBegin(), dividend.rlEnd(), divisor);
         }
         bubbleViaIterators(divisorDigits.begin(), divisorDigits.end());
         BigUInt result(std::move(divisorDigits), false);
