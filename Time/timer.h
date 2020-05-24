@@ -9,9 +9,7 @@ class Timer {
 
 public:
     Timer();
-
     ~Timer();
-
     double elapsed() const;
 
 private:

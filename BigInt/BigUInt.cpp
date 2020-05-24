@@ -659,7 +659,7 @@ namespace big {
                                        const rlIterator rightToLeftEnd,
                                        const BigUInt &divisor) {
         if (lessThanViaIterators(
-            leftToRightConstIt, leftToRightConstEnd, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd())) {
+                leftToRightConstIt, leftToRightConstEnd, divisor.leftToRightConstBegin(), divisor.leftToRightConstEnd())) {
             return 0ul;
         }
         assert(divisor != 0ul);

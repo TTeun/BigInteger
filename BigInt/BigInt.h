@@ -12,15 +12,10 @@ namespace big {
     public:
         /***************** Constructors *****************/
         BigInt();
-
         BigInt(BigInt &&other) noexcept;
-
         BigInt(const BigInt &other);
-
         explicit BigInt(BigUInt &&magnitude);
-
         explicit BigInt(const BigUInt &other);
-
         explicit BigInt(const std::string &val);
 
         /***************** Operators *****************/
@@ -74,9 +69,8 @@ namespace big {
         void resize(size_t size);
         void reserve(size_t size);
 
-        friend BigUInt;
-
         /***************** Accessors *****************/
+        friend BigUInt;
         const BigUInt &magnitude() const {
             return m_magnitude;
         }
