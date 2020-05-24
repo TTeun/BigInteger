@@ -5,7 +5,8 @@
 
 #include <ostream>
 
-namespace big {
+namespace big
+{
 
     class BigUInt : public DigitVector {
 
@@ -17,11 +18,9 @@ namespace big {
         /***************** Constructors *****************/
         BigUInt() {
             init(0);
-            assert(isWellFormed());
         }
         BigUInt(size_t val) {
             init(val);
-            assert(isWellFormed());
         }
         BigUInt(BigUInt &&other) noexcept : DigitVector(std::move(other.m_digits)) {
         }
@@ -185,5 +184,6 @@ namespace big {
             return lessThanViaIterators(rhsIt, rhsEnd, thisIt, thisEnd);
         }
     };
-}
+} // namespace big
+
 #endif // __BIG_U_INT__H__

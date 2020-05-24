@@ -94,7 +94,7 @@ namespace big {
         return *this;
     }
 
-    BigInt &BigInt::operator=(BigInt &&rhs) noexcept {
+    BigInt &BigInt::operator=(BigInt &&rhs) {
         std::swap(m_magnitude.m_digits, rhs.m_magnitude.m_digits);
         m_isNegative = rhs.m_isNegative;
         return *this;
