@@ -51,9 +51,19 @@ TEST_CASE("BigUInt tests", "[BigUIntTests]") {
             size_t a = rand() % std::numeric_limits<size_t>::max();
             size_t b = rand() % std::numeric_limits<size_t>::max();
             const auto k = BigUInt(a) * BigUInt(b);
-            CHECK(BigUInt(a) * BigUInt(b) == a * b);
+            CHECK(k == a * b);
         }
     }
+
+    SECTION("Multiplication with size_t") {
+        for (size_t dummy = 0; dummy != 200; ++dummy) {
+            size_t a = rand() % std::numeric_limits<size_t>::max();
+            size_t b = rand() % std::numeric_limits<size_t>::max();
+            const auto k = BigUInt(a) * b;
+            CHECK(k== a * b);
+        }
+    }
+
 
     SECTION("Division") {
         for (size_t dummy = 0; dummy != 200; ++dummy) {

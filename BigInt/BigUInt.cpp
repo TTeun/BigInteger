@@ -144,6 +144,10 @@ namespace big {
                 resize(digitCount() + 1ul);
                 multiplyBySingleDigitViaIterators(rlBegin(), rlEnd(), rhs);
                 resizeToFit();
+            } else if (rhs < s_base * (s_base + 1)) {
+                resize(digitCount() + 2ul);
+                multiplyByDoubleDigitsViaIterators(rlBegin(), rlEnd(), rhs % s_base, rhs / s_base);
+                resizeToFit();
             } else {
                 reserve(digitCount() + 3ul);
                 *this *= BigUInt(rhs);
@@ -157,8 +161,19 @@ namespace big {
         assert(rhs.isWellFormed());
         if (this == &rhs) { square(); }
 
-        *this = rhs.digitCount() > digitCount() ? multiply(*this, rhs) : multiply(rhs, *this);
-        return *this;
+        switch (rhs.digitCount()) {
+            case 1ul:
+                resize(digitCount() + 1ul);
+                multiplyBySingleDigitViaIterators(rlBegin(), rlEnd(), rhs.mostSignificantDigit());
+                if (mostSignificantDigit() == 0ul) { resize(digitCount() - 1ul); }
+                return *this;
+            case 2ul:
+                resize(digitCount() + 2ul);
+                multiplyByDoubleDigitsViaIterators(rlBegin(), rlEnd(), rhs.leastSignificantDigit(), rhs.mostSignificantDigit());
+                resizeToFit();
+                return *this;
+            default: *this = rhs.digitCount() > digitCount() ? multiply(*this, rhs) : multiply(rhs, *this); return *this;
+        }
     }
 
     BigUInt BigUInt::operator*(size_t rhs) const {
@@ -506,6 +521,28 @@ namespace big {
             } else {
                 carry = 0ul;
             }
+        }
+    }
+
+    void BigUInt::multiplyByDoubleDigitsViaIterators(rlIterator resultIt,
+                                                     const rlIterator resultEnd,
+                                                     const size_t least,
+                                                     const size_t most) {
+        size_t previousVal = 0ul;
+        size_t currentVal = 0ul;
+        size_t carry = 0ul;
+
+        for (; resultIt != resultEnd; ++resultIt) {
+            currentVal = *resultIt;
+
+            *resultIt = carry + currentVal * least + previousVal * most;
+            if (*resultIt > s_maxDigit) {
+                carry = *resultIt / s_base;
+                *resultIt %= s_base;
+            } else {
+                carry = 0ul;
+            }
+            previousVal = currentVal;
         }
     }
 
