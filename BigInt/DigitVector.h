@@ -1,21 +1,21 @@
-#ifndef TEUN_GAME_DIGITVECTOR_H
-#define TEUN_GAME_DIGITVECTOR_H
+#ifndef __DIGIT_VECTOR__H__
+#define __DIGIT_VECTOR__H__
 
 #include <cassert>
-#include <cmath>
-#include <limits>
 #include <ostream>
 #include <vector>
 
-typedef std::vector<size_t>::reverse_iterator       leftToRightIterator;
-typedef std::vector<size_t>::const_reverse_iterator leftToRightConstIterator;
-typedef std::vector<size_t>::iterator               rightToLeftIterator;
-typedef std::vector<size_t>::const_iterator         rightToLeftConstIterator;
+typedef std::vector<size_t>::reverse_iterator       lrIterator;
+typedef std::vector<size_t>::const_reverse_iterator lrcIterator;
+typedef std::vector<size_t>::iterator               rlIterator;
+typedef std::vector<size_t>::const_iterator         rlcIterator;
 
 class DigitVector {
 
 public:
     static const size_t s_base = 1000000000ul;
+
+    static const size_t s_digitsPerLimb = 9ul;
 
     static const size_t s_maxDigit = s_base - 1ul;
 
@@ -50,31 +50,31 @@ public:
         return m_digits.back();
     }
 
-    leftToRightIterator leftToRightBegin() {
+    lrIterator leftToRightBegin() {
         return m_digits.rbegin();
     }
 
-    leftToRightIterator leftToRightEnd() {
+    lrIterator leftToRightEnd() {
         return m_digits.rend();
     }
 
-    rightToLeftIterator rightToLeftEnd() {
+    rlIterator rightToLeftEnd() {
         return m_digits.end();
     }
 
-    leftToRightConstIterator leftToRightConstBegin() const {
+    lrcIterator leftToRightConstBegin() const {
         return m_digits.crbegin();
     }
 
-    leftToRightConstIterator leftToRightConstEnd() const {
+    lrcIterator leftToRightConstEnd() const {
         return m_digits.crend();
     }
 
-    rightToLeftConstIterator rightToLeftConstBegin() const {
+    rlcIterator rightToLeftConstBegin() const {
         return m_digits.cbegin();
     }
 
-    rightToLeftConstIterator rightToLeftConstEnd() const {
+    rlcIterator rightToLeftConstEnd() const {
         return m_digits.cend();
     }
 
@@ -91,7 +91,7 @@ public:
     static void resizeToFitVector(std::vector<size_t> &digits);
 
     std::vector<size_t> m_digits;
-    rightToLeftIterator rightToLeftBegin() {
+    rlIterator          rightToLeftBegin() {
         return m_digits.begin();
     }
     void resize(size_t size) {
@@ -99,4 +99,4 @@ public:
     }
 };
 
-#endif // TEUN_GAME_DIGITVECTOR_H
+#endif // __DIGIT_VECTOR__H__

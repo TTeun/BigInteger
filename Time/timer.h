@@ -8,7 +8,7 @@
 class Timer {
 
 public:
- Timer();
+    Timer();
 
     ~Timer();
 

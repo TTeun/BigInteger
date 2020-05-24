@@ -2,20 +2,17 @@ Language:        Cpp
 BasedOnStyle:  LLVM
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: true
-#AlignEscapedNewlines: Right
-#AlignOperands:   true
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Never
-AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
-#AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: Yes # false
 BinPackArguments: false
 BinPackParameters: false
@@ -40,7 +37,7 @@ BinPackParameters: false
 #BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 #BreakStringLiterals: true
-ColumnLimit:     110
+ColumnLimit:     130
 #CommentPragmas:  '^ IWYU pragma:'
 #CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true

@@ -1,9 +1,5 @@
-//
-// Created by pc on 5/15/20.
-//
-
-#ifndef TEUN_GAME_BIGINT_H
-#define TEUN_GAME_BIGINT_H
+#ifndef __BIG_INT__H__
+#define __BIG_INT__H__
 
 #include "BigUInt.h"
 
@@ -86,16 +82,16 @@ public:
 
     friend BigUInt;
 
+    const BigUInt &magnitude() const {
+        return m_magnitude;
+    }
+
 private:
-    void flipSign() {
+    void negate() {
         m_isNegative = !m_isNegative;
     }
 
     BigUInt &magnitude() {
-        return m_magnitude;
-    }
-
-    const BigUInt &magnitude() const {
         return m_magnitude;
     }
 
@@ -104,4 +100,4 @@ private:
     bool m_isNegative = false;
 };
 
-#endif // TEUN_GAME_BIGINT_H
+#endif // __BIG_INT__H__

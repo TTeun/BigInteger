@@ -1,7 +1,5 @@
 #include "BigInt.h"
 
-#include <cassert>
-
 BigInt::BigInt() : m_magnitude() {
 }
 
@@ -202,7 +200,7 @@ BigInt operator+(size_t lhs, const BigInt &rhs) {
 
 BigInt operator-(size_t lhs, const BigInt &rhs) {
     auto result = rhs - lhs;
-    result.flipSign();
+    result.negate();
     return result;
 }
 

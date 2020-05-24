@@ -1,7 +1,5 @@
 #include "DigitVector.h"
 
-#include <cassert>
-
 bool DigitVector::isCorrectlySized() const {
     assert(digitCount() > 0);
     if (mostSignificantDigit() == 0ul) {
