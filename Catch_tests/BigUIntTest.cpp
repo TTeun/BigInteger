@@ -3,18 +3,16 @@
 
 #include "catch.hpp"
 
+using namespace big;
+
 TEST_CASE("BigUInt tests", "[BigUIntTests]") {
 
     SECTION("Sum of natural numbers") {
         BigUInt sumOfNaturalNumbers("5000050000");
         BigUInt b(0);
-        for (size_t i = 0; i != 100001; ++i) {
-            b += BigUInt(i);
-        }
+        for (size_t i = 0; i != 100001; ++i) { b += BigUInt(i); }
         CHECK(b == sumOfNaturalNumbers);
-        for (size_t i = 0; i != 100001; ++i) {
-            b -= BigUInt(i);
-        }
+        for (size_t i = 0; i != 100001; ++i) { b -= BigUInt(i); }
         CHECK(b == 0);
     }
 
@@ -28,8 +26,7 @@ TEST_CASE("BigUInt tests", "[BigUIntTests]") {
                                "28657832647832647832784"
                                "683724678326487326743656329847047017259887150872142");
         const auto b = BigUInt("29371982479821749842772102198749275124736283768732687126321");
-        const auto c = BigUInt(
-            "108907966262918718058705949100715069245292669239739335359987042442051400703079828741589494778");
+        const auto c = BigUInt("108907966262918718058705949100715069245292669239739335359987042442051400703079828741589494778");
         CHECK(a / b == c);
     }
     SECTION("Fixed subtraction") {
@@ -41,8 +38,8 @@ TEST_CASE("BigUInt tests", "[BigUIntTests]") {
 
     SECTION("Addition") {
         for (size_t dummy = 0; dummy != 200; ++dummy) {
-            size_t     a = rand() % (std::numeric_limits<size_t>::max() / 2ul);
-            size_t     b = rand() % (std::numeric_limits<size_t>::max() / 2ul);
+            size_t a = rand() % (std::numeric_limits<size_t>::max() / 2ul);
+            size_t b = rand() % (std::numeric_limits<size_t>::max() / 2ul);
             const auto k = BigUInt(a) + BigUInt(b);
             CHECK(k == a + b);
         }
@@ -50,8 +47,8 @@ TEST_CASE("BigUInt tests", "[BigUIntTests]") {
 
     SECTION("Multiplication") {
         for (size_t dummy = 0; dummy != 200; ++dummy) {
-            size_t     a = rand() % std::numeric_limits<size_t>::max();
-            size_t     b = rand() % std::numeric_limits<size_t>::max();
+            size_t a = rand() % std::numeric_limits<size_t>::max();
+            size_t b = rand() % std::numeric_limits<size_t>::max();
             const auto k = BigUInt(a) * BigUInt(b);
             CHECK(BigUInt(a) * BigUInt(b) == a * b);
         }
@@ -67,19 +64,18 @@ TEST_CASE("BigUInt tests", "[BigUIntTests]") {
     }
 
     SECTION("Power") {
-        const BigUInt twoToThePowerTwoThousand(
-            "114813069527425452423283320117768198402231770208869520047764273682"
-            "576626139237031385665948631650626991"
-            "844596463898746277344711896086305533142593135616665318539129989145"
-            "312280000688779148240044871428926990"
-            "063486244781615463646388363947317026040466353970904996558162398808"
-            "944629605623311649536164221970332681"
-            "344168908984458505602379484807914058900934776500429002716706625830"
-            "522008132236281291761267883317206598"
-            "995396418127021779858404042159853183251540889433902091920554957783"
-            "589672039160081957216630582755380425"
-            "583726015528348786419432054508915275783882625175435528800822842770"
-            "817965453762184851149029376");
+        const BigUInt twoToThePowerTwoThousand("114813069527425452423283320117768198402231770208869520047764273682"
+                                               "576626139237031385665948631650626991"
+                                               "844596463898746277344711896086305533142593135616665318539129989145"
+                                               "312280000688779148240044871428926990"
+                                               "063486244781615463646388363947317026040466353970904996558162398808"
+                                               "944629605623311649536164221970332681"
+                                               "344168908984458505602379484807914058900934776500429002716706625830"
+                                               "522008132236281291761267883317206598"
+                                               "995396418127021779858404042159853183251540889433902091920554957783"
+                                               "589672039160081957216630582755380425"
+                                               "583726015528348786419432054508915275783882625175435528800822842770"
+                                               "817965453762184851149029376");
         BigUInt b = power(BigUInt(2), 2000);
         CHECK(b == twoToThePowerTwoThousand);
     }
@@ -137,10 +133,8 @@ TEST_CASE("BigUInt tests", "[BigUIntTests]") {
                                         "000000000000000000000000000000000"
                                         "000000000000000000000000000000000000000000000000000000000000000000"
                                         "000000000000000000000000000");
-        BigUInt       b = 1;
-        for (size_t i = 1; i != 1001; ++i) {
-            b *= i;
-        }
+        BigUInt b = 1;
+        for (size_t i = 1; i != 1001; ++i) { b *= i; }
         CHECK(b == thousandFactorial);
     }
 }

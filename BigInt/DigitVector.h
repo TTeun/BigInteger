@@ -5,98 +5,97 @@
 #include <ostream>
 #include <vector>
 
-typedef std::vector<size_t>::reverse_iterator       lrIterator;
+typedef std::vector<size_t>::reverse_iterator lrIterator;
 typedef std::vector<size_t>::const_reverse_iterator lrcIterator;
-typedef std::vector<size_t>::iterator               rlIterator;
-typedef std::vector<size_t>::const_iterator         rlcIterator;
+typedef std::vector<size_t>::iterator rlIterator;
+typedef std::vector<size_t>::const_iterator rlcIterator;
 
-class DigitVector {
+namespace big {
 
-public:
-    static const size_t s_base = 1000000000ul;
+    class DigitVector {
 
-    static const size_t s_digitsPerLimb = 9ul;
+    public:
+        static const size_t s_base = 1000000000ul;
+        static const size_t s_maxDigit = 999999999ul;
+        static const size_t s_digitsPerLimb = 9ul;
 
-    static const size_t s_maxDigit = s_base - 1ul;
+        size_t digitCount() const {
+            return m_digits.size();
+        }
 
-    size_t digitCount() const {
-        return m_digits.size();
-    }
+        friend class BigInt;
 
-    friend class BigInt;
+    public:
+        DigitVector() = default;
+        explicit DigitVector(std::vector<size_t> &&digits) : m_digits(std::move(digits)) {
+        }
+        size_t digitAt(size_t index) const {
+            assert(index < m_digits.size());
+            return m_digits.at(index);
+        }
 
-public:
-    DigitVector() = default;
+        void shift(size_t shiftAmount) {
+            m_digits.insert(rightToLeftBegin(), shiftAmount, 0);
+        }
 
-    explicit DigitVector(std::vector<size_t> &&digits) : m_digits(std::move(digits)) {
-    }
+        size_t leastSignificantDigit() const {
+            return m_digits.front();
+        }
 
-    size_t digitAt(size_t index) const {
-        assert(index < m_digits.size());
-        return m_digits.at(index);
-    }
+        bool isWellFormed() const;
 
-    void shift(size_t shiftAmount) {
-        m_digits.insert(rightToLeftBegin(), shiftAmount, 0);
-    }
+        size_t mostSignificantDigit() const {
+            return m_digits.back();
+        }
 
-    size_t leastSignificantDigit() const {
-        return m_digits.front();
-    }
+        lrIterator leftToRightBegin() {
+            return m_digits.rbegin();
+        }
 
-    bool isWellFormed() const;
+        lrIterator leftToRightEnd() {
+            return m_digits.rend();
+        }
 
-    size_t mostSignificantDigit() const {
-        return m_digits.back();
-    }
+        rlIterator rightToLeftEnd() {
+            return m_digits.end();
+        }
 
-    lrIterator leftToRightBegin() {
-        return m_digits.rbegin();
-    }
+        lrcIterator leftToRightConstBegin() const {
+            return m_digits.crbegin();
+        }
 
-    lrIterator leftToRightEnd() {
-        return m_digits.rend();
-    }
+        lrcIterator leftToRightConstEnd() const {
+            return m_digits.crend();
+        }
 
-    rlIterator rightToLeftEnd() {
-        return m_digits.end();
-    }
+        rlcIterator rightToLeftConstBegin() const {
+            return m_digits.cbegin();
+        }
 
-    lrcIterator leftToRightConstBegin() const {
-        return m_digits.crbegin();
-    }
+        rlcIterator rightToLeftConstEnd() const {
+            return m_digits.cend();
+        }
 
-    lrcIterator leftToRightConstEnd() const {
-        return m_digits.crend();
-    }
+        bool isCorrectlySized() const;
 
-    rlcIterator rightToLeftConstBegin() const {
-        return m_digits.cbegin();
-    }
+        void reserve(size_t size) {
+            m_digits.reserve(size);
+        }
 
-    rlcIterator rightToLeftConstEnd() const {
-        return m_digits.cend();
-    }
+        void resizeToFit() {
+            resizeToFitVector(m_digits);
+        }
 
-    bool isCorrectlySized() const;
+        static void resizeToFitVector(std::vector<size_t> &digits);
 
-    void reserve(size_t size) {
-        m_digits.reserve(size);
-    }
-
-    void resizeToFit() {
-        resizeToFitVector(m_digits);
-    }
-
-    static void resizeToFitVector(std::vector<size_t> &digits);
-
-    std::vector<size_t> m_digits;
-    rlIterator          rightToLeftBegin() {
-        return m_digits.begin();
-    }
-    void resize(size_t size) {
-        m_digits.resize(size);
-    }
-};
+        std::vector<size_t> m_digits;
+        rlIterator rightToLeftBegin() {
+            return m_digits.begin();
+        }
+        void resize(size_t size) {
+            m_digits.resize(size);
+        }
+    };
+} // namespace big
 
 #endif // __DIGIT_VECTOR__H__

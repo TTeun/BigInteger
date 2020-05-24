@@ -2,10 +2,11 @@
 #define __BENCHMARK__H__
 
 #include <cstddef>
+#include <vector>
 
 namespace BenchMark {
 
-    void run();
+    void run(const std::vector<std::pair<size_t, size_t>> &digitCounts);
 
     double multiply(size_t powerOfTen = 40ul, size_t numberOfRepetitions = 50ul);
     double add(size_t powerOfTen = 40ul, size_t numberOfRepetitions = 50ul);
