@@ -37,12 +37,14 @@ namespace big {
     }
 
     void bubbleViaIterators(rlIterator thisIt, const rlIterator &thisEnd) {
-        for (auto next = thisIt + 1ul; next != thisEnd; ++thisIt, ++next) {
+        auto next = thisIt + 1ul;
+        for (; next != thisEnd; ++thisIt, ++next) {
             if (*thisIt > DigitVector::s_maxDigit) {
                 *next += *thisIt / DigitVector::s_base;
                 *thisIt %= DigitVector::s_base;
             }
         }
+        assert(*next <= DigitVector::s_maxDigit);
     }
 
     /***************** Constructors *****************/
