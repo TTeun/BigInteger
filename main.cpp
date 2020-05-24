@@ -1,4 +1,4 @@
-#define NDEBUG
+//#define NDEBUG
 
 #include "BigInt/BigInt.h"
 #include "BigInt/BigUInt.h"

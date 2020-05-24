@@ -25,7 +25,7 @@ public:
 
     friend class BigInt;
 
-protected:
+public:
     DigitVector() = default;
 
     explicit DigitVector(std::vector<size_t> &&digits) : m_digits(std::move(digits)) {
@@ -58,10 +58,6 @@ protected:
         return m_digits.rend();
     }
 
-    rightToLeftIterator rightToLeftBegin() {
-        return m_digits.begin();
-    }
-
     rightToLeftIterator rightToLeftEnd() {
         return m_digits.end();
     }
@@ -88,10 +84,6 @@ protected:
         m_digits.reserve(size);
     }
 
-    void resize(size_t size) {
-        m_digits.resize(size);
-    }
-
     void resizeToFit() {
         resizeToFitVector(m_digits);
     }
@@ -99,6 +91,12 @@ protected:
     static void resizeToFitVector(std::vector<size_t> &digits);
 
     std::vector<size_t> m_digits;
+    rightToLeftIterator rightToLeftBegin() {
+        return m_digits.begin();
+    }
+    void resize(size_t size) {
+        m_digits.resize(size);
+    }
 };
 
 #endif // TEUN_GAME_DIGITVECTOR_H
