@@ -6,7 +6,7 @@
 
 namespace BenchMark {
 
-    void run(const std::vector<std::pair<size_t, size_t>> &digitCounts);
+    void run(const std::vector<std::pair<size_t, size_t>> &digitCountAndRepetitions);
 
     double multiply(size_t powerOfTen = 40ul, size_t numberOfRepetitions = 50ul);
     double add(size_t powerOfTen = 40ul, size_t numberOfRepetitions = 50ul);

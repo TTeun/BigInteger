@@ -1,4 +1,5 @@
 #define CATCH_CONFIG_MAIN
+
 #include "../BigInt/BigUInt.h"
 
 #include "catch.hpp"

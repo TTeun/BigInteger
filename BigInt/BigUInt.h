@@ -5,8 +5,7 @@
 
 #include <ostream>
 
-namespace big
-{
+namespace big {
 
     class BigUInt : public DigitVector {
 
@@ -119,6 +118,7 @@ namespace big
 
         /** Multiplication **/
         static BigUInt multiply(const BigUInt &smaller, const BigUInt &larger);
+        static void multiplyBySingleDigitViaIterators(rlIterator resultIt, const rlIterator resultEnd, const size_t rhs);
         static void karatsubaMultiplyViaIterators(rlIterator resultIt,
                                                   const rlIterator resultEnd,
                                                   rlcIterator smallIt,
