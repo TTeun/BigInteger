@@ -37,9 +37,7 @@ namespace big {
     }
 
     void bubbleViaIterators(rlIterator thisIt, const rlIterator &thisEnd) {
-        auto next = thisIt + 1;
-
-        for (; next != thisEnd; ++thisIt, ++next) {
+        for (auto next = thisIt + 1ul; next != thisEnd; ++thisIt, ++next) {
             if (*thisIt >= DigitVector::s_base) {
                 *next += *thisIt / DigitVector::s_base;
                 *thisIt %= DigitVector::s_base;
@@ -83,7 +81,6 @@ namespace big {
 
     /***************** Operators *****************/
     BigUInt &BigUInt::operator=(const BigUInt &rhs) {
-        if (this == &rhs) { return *this; }
         m_digits = rhs.m_digits;
         return *this;
     }
@@ -100,10 +97,12 @@ namespace big {
     }
 
     BigUInt &BigUInt::operator+=(size_t rhs) {
+        if (rhs == 0ul) { return *this; }
         static const size_t additionRoom = std::numeric_limits<size_t>::max() - s_base;
         if (rhs <= additionRoom) {
-            *rlBegin() += rhs;
-            bubble();
+            resize(digitCount() + 1ul);
+            carryAdditionViaIterators(rlBegin(), rlEnd(), rhs);
+            if (mostSignificantDigit() == 0ul) { resize(digitCount() - 1ul); }
         } else {
             *this += BigUInt(rhs);
         }
@@ -156,11 +155,7 @@ namespace big {
     BigUInt &BigUInt::operator*=(const BigUInt &rhs) {
         assert(isWellFormed());
         assert(rhs.isWellFormed());
-
-        if (this == &rhs) {
-            square();
-            return *this;
-        }
+        if (this == &rhs) { square(); }
 
         *this = rhs.digitCount() > digitCount() ? multiply(*this, rhs) : multiply(rhs, *this);
         return *this;
@@ -194,7 +189,7 @@ namespace big {
         assert(divisor != 0ul);
         if (&divisor == this) { return BigUInt(1); }
         if (divisor == 1ul) { return BigUInt(*this); }
-        if (divisor < s_base) {
+        if (divisor.digitCount() == 1ul && divisor.mostSignificantDigit() < s_base) {
             auto copy = *this;
             copy.divideByLessThanBase(divisor.mostSignificantDigit());
             return copy;
@@ -245,7 +240,7 @@ namespace big {
         if (mod == 2ul) { return leastSignificantDigit() % 2ul; }
         if (mod >= std::numeric_limits<size_t>::max() / mod) {
             auto copy = *this % BigUInt(mod);
-            return copy.leastSignificantDigit() + s_base * *(copy.rlcBegin() + 1) + s_base * s_base * copy.mostSignificantDigit();
+            return copy.leastSignificantDigit() + s_base * copy.digitAt(1) + s_base * s_base * copy.mostSignificantDigit();
         }
         size_t result = 0ul;
         for (size_t i = 0; i != digitCount(); ++i) {
@@ -305,18 +300,11 @@ namespace big {
         BigUInt copy(base);
 
         while (exponent > 1ul) {
-            assert(aux.isWellFormed());
-            assert(copy.isWellFormed());
             if (exponent % 2ul == 1ul) { aux *= copy; }
             exponent /= 2ul;
             copy.square();
         }
-        assert(aux.isWellFormed());
-        assert(copy.isWellFormed());
-
         copy *= aux;
-        assert(aux.isWellFormed());
-        assert(copy.isWellFormed());
 
         return copy;
     }
@@ -371,8 +359,15 @@ namespace big {
     void BigUInt::init(size_t val) {
         static_assert(s_base <= std::numeric_limits<size_t>::max() / s_base, "s_base^2 should not exceed the maximum size_t");
         static_assert(s_base % 2 == 0, "s_base should be even");
-        m_digits = {val};
-        bubble();
+        static_assert(s_base * s_base > std::numeric_limits<size_t>::max() / s_base, "s_base^3 should exceed the maximum size_t");
+
+        if (val < s_base) {
+            m_digits = {val};
+        } else if (val < s_base * (s_base + 1ul)) {
+            m_digits = {val % s_base, val / s_base};
+        } else {
+            m_digits = {val % s_base, (val / s_base) % s_base, val / (s_base * s_base)};
+        }
     }
 
     void BigUInt::bubble(size_t startIndex) {
