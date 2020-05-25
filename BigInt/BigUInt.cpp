@@ -480,11 +480,11 @@ namespace big {
         if ((rhsEnd - rhsIt) % 2ul == 0ul) {
             size_t carry = 0ul;
             for (; rhsIt != rhsEnd; thisIt += 2ul, rhsIt += 2ul) {
-                size_t s0 = *thisIt + *rhsIt;
+                size_t s0 = *thisIt + *rhsIt + carry;
                 size_t s1 = *(thisIt + 1) + *(rhsIt + 1);
                 size_t r = s0 > s_maxDigit;
 
-                *thisIt = s0 % s_base + carry;
+                *thisIt = s0 % s_base;
                 *(thisIt + 1) = (s1 + r) % s_base;
                 carry = s1 + r > s_maxDigit;
             }
@@ -493,7 +493,6 @@ namespace big {
             }
             return;
         }
-        assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l);
         size_t carry = 0ul;
         for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
             *thisIt += *rhsIt + carry;
