@@ -412,7 +412,7 @@ namespace big {
 
         if (val < s_base) {
             m_digits = {val};
-        } else if (val < s_base * (s_base + 1ul)) {
+        } else if (val < s_base * s_base) {
             m_digits = {val % s_base, val / s_base};
         } else {
             m_digits = {val % s_base, (val / s_base) % s_base, val / (s_base * s_base)};
@@ -477,22 +477,22 @@ namespace big {
 
     void BigUInt::addViaIterators(rlIterator thisIt, rlIterator thisEnd, rlcIterator rhsIt, rlcIterator rhsEnd) {
         assert(std::distance(thisIt, thisEnd) >= std::distance(rhsIt, rhsEnd) + 1l);
-        if ((rhsEnd - rhsIt) % 2ul == 0ul) {
-            size_t carry = 0ul;
-            for (; rhsIt != rhsEnd; thisIt += 2ul, rhsIt += 2ul) {
-                size_t s0 = *thisIt + *rhsIt + carry;
-                size_t s1 = *(thisIt + 1) + *(rhsIt + 1);
-                size_t r = s0 > s_maxDigit;
-
-                *thisIt = s0 % s_base;
-                *(thisIt + 1) = (s1 + r) % s_base;
-                carry = s1 + r > s_maxDigit;
-            }
-            if (carry == 1ul) {
-                carryAdditionViaIterators(thisIt, thisEnd, 1ul);
-            }
-            return;
-        }
+        //        if ((rhsEnd - rhsIt) % 2ul == 0ul) {
+        //            size_t carry = 0ul;
+        //            for (; rhsIt != rhsEnd; thisIt += 2ul, rhsIt += 2ul) {
+        //                size_t s0 = *thisIt + *rhsIt + carry;
+        //                size_t s1 = *(thisIt + 1) + *(rhsIt + 1);
+        //                size_t r = s0 > s_maxDigit;
+        //
+        //                *thisIt = s0 % s_base;
+        //                *(thisIt + 1) = (s1 + r) % s_base;
+        //                carry = s1 + r > s_maxDigit;
+        //            }
+        //            if (carry == 1ul) {
+        //                carryAdditionViaIterators(thisIt, thisEnd, 1ul);
+        //            }
+        //            return;
+        //        }
         size_t carry = 0ul;
         for (; rhsIt != rhsEnd; ++thisIt, ++rhsIt) {
             *thisIt += *rhsIt + carry;

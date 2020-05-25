@@ -8,12 +8,35 @@ using namespace big;
 
 TEST_CASE("BigUInt tests", "[BigUIntTests]") {
 
+    SECTION("Some additions and subtractions") {
+        BigUInt b(BigUIntBase::s_base);
+        BigUInt c(BigUIntBase::s_base - 1);
+        c += 1ul;
+        CHECK(c == BigUInt(BigUIntBase::s_base));
+        c -= 1ul;
+        CHECK(c == BigUIntBase::s_base - 1ul);
+        b -= c;
+        CHECK(b == 1ul);
+        b += BigUIntBase::s_base - 1ul;
+        CHECK(b == BigUInt(BigUIntBase::s_base));
+        b *= BigUIntBase::s_base;
+        CHECK(b == BigUInt(BigUIntBase::s_base * BigUIntBase::s_base));
+        b /= BigUIntBase::s_base;
+        CHECK(b == BigUInt(BigUIntBase::s_base));
+        b /= BigUIntBase::s_base;
+        CHECK(b == 1ul);
+    }
+
     SECTION("Sum of natural numbers") {
         BigUInt sumOfNaturalNumbers("5000050000");
         BigUInt b(0);
-        for (size_t i = 0; i != 100001; ++i) { b += BigUInt(i); }
+        for (size_t i = 0; i != 100001; ++i) {
+            b += BigUInt(i);
+        }
         CHECK(b == sumOfNaturalNumbers);
-        for (size_t i = 0; i != 100001; ++i) { b -= BigUInt(i); }
+        for (size_t i = 0; i != 100001; ++i) {
+            b -= BigUInt(i);
+        }
         CHECK(b == 0);
     }
 
@@ -61,10 +84,9 @@ TEST_CASE("BigUInt tests", "[BigUIntTests]") {
             size_t a = rand() % std::numeric_limits<size_t>::max();
             size_t b = rand() % std::numeric_limits<size_t>::max();
             const auto k = BigUInt(a) * b;
-            CHECK(k== a * b);
+            CHECK(k == a * b);
         }
     }
-
 
     SECTION("Division") {
         for (size_t dummy = 0; dummy != 200; ++dummy) {
@@ -146,7 +168,9 @@ TEST_CASE("BigUInt tests", "[BigUIntTests]") {
                                         "000000000000000000000000000000000000000000000000000000000000000000"
                                         "000000000000000000000000000");
         BigUInt b = 1;
-        for (size_t i = 1; i != 1001; ++i) { b *= i; }
+        for (size_t i = 1; i != 1001; ++i) {
+            b *= i;
+        }
         CHECK(b == thousandFactorial);
     }
 }
