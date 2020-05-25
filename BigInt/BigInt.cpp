@@ -2,11 +2,9 @@
 
 namespace big {
 
-    BigInt::BigInt() : m_magnitude() {
-    }
+    BigInt::BigInt() : m_magnitude() {}
 
-    BigInt::BigInt(BigUInt &&magnitude) : m_magnitude(std::move(magnitude)) {
-    }
+    BigInt::BigInt(BigUInt &&magnitude) : m_magnitude(std::move(magnitude)) {}
 
     BigInt &BigInt::operator=(size_t rhs) {
         m_magnitude = rhs;
@@ -14,14 +12,11 @@ namespace big {
         return *this;
     }
 
-    BigInt::BigInt(const BigUInt &other) : m_magnitude(other) {
-    }
+    BigInt::BigInt(const BigUInt &other) : m_magnitude(other) {}
 
-    BigInt::BigInt(BigInt &&other) noexcept : m_magnitude(other.m_magnitude), m_isNegative(other.m_isNegative) {
-    }
+    BigInt::BigInt(BigInt &&other) noexcept : m_magnitude(other.m_magnitude), m_isNegative(other.m_isNegative) {}
 
-    BigInt::BigInt(const BigInt &other) : m_magnitude(other.m_magnitude), m_isNegative(other.m_isNegative) {
-    }
+    BigInt::BigInt(const BigInt &other) : m_magnitude(other.m_magnitude), m_isNegative(other.m_isNegative) {}
 
     BigInt::BigInt(const std::string &val) {
         if (val.front() == '-') {
@@ -118,17 +113,20 @@ namespace big {
 
     BigInt BigInt::operator+(size_t rhs) const {
         auto result = *this;
-        return result += rhs;
+        result += rhs;
+        return result;
     }
 
     BigInt BigInt::operator-(const BigInt &rhs) const {
         auto result = *this;
-        return result -= rhs;
+        result -= rhs;
+        return result;
     }
 
     BigInt BigInt::operator-(const BigUInt &rhs) const {
         auto result = *this;
-        return result -= rhs;
+        result -= rhs;
+        return result;
     }
 
     BigInt &BigInt::operator*=(const BigInt &rhs) {
@@ -144,32 +142,38 @@ namespace big {
 
     BigInt BigInt::operator+(const BigInt &rhs) const {
         auto result = *this;
-        return result += rhs;
+        result += rhs;
+        return result;
     }
 
     BigInt BigInt::operator*(size_t rhs) const {
         auto result = *this;
-        return result *= rhs;
+        result *= rhs;
+        return result;
     }
 
     BigInt BigInt::operator*(const BigInt &rhs) const {
         auto result = *this;
-        return result *= rhs;
+        result *= rhs;
+        return result;
     }
 
     BigInt BigInt::operator/(const BigInt &divisor) const {
         auto result = *this;
-        return result /= divisor;
+        result /= divisor;
+        return result;
     }
 
     BigInt BigInt::operator/(const BigUInt &divisor) const {
         auto result = *this;
-        return result /= divisor;
+        result /= divisor;
+        return result;
     }
 
     BigInt BigInt::operator/(size_t divisor) const {
         auto result = *this;
-        return result /= divisor;
+        result /= divisor;
+        return result;
     }
 
     BigInt &BigInt::operator/=(const BigInt &divisor) {
@@ -188,17 +192,11 @@ namespace big {
         return *this;
     }
 
-    void BigInt::resize(size_t size) {
-        m_magnitude.resize(size);
-    }
+    void BigInt::resize(size_t size) { m_magnitude.resize(size); }
 
-    void BigInt::reserve(size_t size) {
-        m_magnitude.reserve(size);
-    }
+    void BigInt::reserve(size_t size) { m_magnitude.reserve(size); }
 
-    BigInt operator+(size_t lhs, const BigInt &rhs) {
-        return rhs + lhs;
-    }
+    BigInt operator+(size_t lhs, const BigInt &rhs) { return rhs + lhs; }
 
     BigInt operator-(size_t lhs, const BigInt &rhs) {
         auto result = rhs - lhs;
@@ -206,7 +204,5 @@ namespace big {
         return result;
     }
 
-    BigInt operator*(size_t lhs, const BigInt &rhs) {
-        return rhs * lhs;
-    }
+    BigInt operator*(size_t lhs, const BigInt &rhs) { return rhs * lhs; }
 } // namespace big

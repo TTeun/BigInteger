@@ -1,11 +1,11 @@
 #include "BenchMark.h"
-#define NDEBUG
 
 #include "../BigInt/BigUInt.h"
 #include "timer.h"
 
 #include <gmpxx.h>
 #include <iomanip>
+#include <iostream>
 
 using namespace big;
 
@@ -131,22 +131,32 @@ double BenchMark::modulo(size_t powerOfTen, size_t numberOfRepetitions) {
 
 void BenchMark::run(const std::vector<std::pair<size_t, size_t>> &digitCountAndRepetitions) {
     std::cout << "Decimal digits:\t";
-    for (auto it : digitCountAndRepetitions) { std::cout << std::setfill(' ') << std::setw(15) << it.first; }
+    for (auto it : digitCountAndRepetitions) {
+        std::cout << std::setfill(' ') << std::setw(15) << it.first;
+    }
     std::cout << '\n';
 
     std::cout << "Multiply:\t\t";
-    for (auto it : digitCountAndRepetitions) { std::cout << std::setfill(' ') << std::setw(15) << multiply(it.first, it.second); }
+    for (auto it : digitCountAndRepetitions) {
+        std::cout << std::setfill(' ') << std::setw(15) << multiply(it.first, it.second);
+    }
     std::cout << '\n';
 
     std::cout << "Add:\t\t\t";
-    for (auto it : digitCountAndRepetitions) { std::cout << std::setfill(' ') << std::setw(15) << add(it.first, it.second); }
+    for (auto it : digitCountAndRepetitions) {
+        std::cout << std::setfill(' ') << std::setw(15) << add(it.first, it.second);
+    }
     std::cout << '\n';
 
     std::cout << "Divide:\t\t\t";
-    for (auto it : digitCountAndRepetitions) { std::cout << std::setfill(' ') << std::setw(15) << divide(it.first, it.second); }
+    for (auto it : digitCountAndRepetitions) {
+        std::cout << std::setfill(' ') << std::setw(15) << divide(it.first, it.second);
+    }
     std::cout << '\n';
 
     std::cout << "Modulo:\t\t\t";
-    for (auto it : digitCountAndRepetitions) { std::cout << std::setfill(' ') << std::setw(15) << modulo(it.first, it.second); }
+    for (auto it : digitCountAndRepetitions) {
+        std::cout << std::setfill(' ') << std::setw(15) << modulo(it.first, it.second);
+    }
     std::cout << '\n';
 }

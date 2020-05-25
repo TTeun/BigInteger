@@ -1,8 +1,8 @@
-#include "DigitVector.h"
+#include "BigUIntBase.h"
 
 namespace big {
 
-    bool DigitVector::isCorrectlySized() const {
+    bool BigUIntBase::isCorrectlySized() const {
         assert(digitCount() > 0);
         if (mostSignificantDigit() == 0ul) {
             return digitCount() == 1; // Is the value zero
@@ -10,7 +10,7 @@ namespace big {
         return true;
     }
 
-    bool DigitVector::isWellFormed() const {
+    bool BigUIntBase::isWellFormed() const {
         if (not isCorrectlySized()) { return false; }
         for (const auto &it : m_digits) {
             if (it >= s_base) { return false; }
@@ -18,7 +18,7 @@ namespace big {
         return true;
     }
 
-    void DigitVector::resizeToFitVector(std::vector<size_t> &digits) {
+    void BigUIntBase::resizeToFitVector(std::vector<size_t> &digits) {
         auto it = digits.rbegin();
         for (; it != digits.rend() && *it == 0ul; ++it)
             ;

@@ -1,13 +1,13 @@
 #ifndef __BIG_U_INT__H__
 #define __BIG_U_INT__H__
 
-#include "DigitVector.h"
+#include "BigUIntBase.h"
 
 #include <ostream>
 
 namespace big {
 
-    class BigUInt : public DigitVector {
+    class BigUInt : public BigUIntBase {
 
     public:
         static const size_t s_karatsubaLowerLimit = 160ul;
@@ -21,14 +21,14 @@ namespace big {
         BigUInt(size_t val) {
             init(val);
         }
-        BigUInt(BigUInt &&other) noexcept : DigitVector(std::move(other.m_digits)) {
+        BigUInt(BigUInt &&other) noexcept : BigUIntBase(std::move(other.m_digits)) {
         }
-        BigUInt(const BigUInt &other) : DigitVector(std::vector<size_t>(other.m_digits.begin(), other.m_digits.end())) {
+        BigUInt(const BigUInt &other) : BigUIntBase(std::vector<size_t>(other.m_digits.begin(), other.m_digits.end())) {
             assert(isWellFormed());
         }
         BigUInt(std::vector<size_t> &&digits, bool isAlreadyCorrectlySized);
         explicit BigUInt(const std::string &val);
-        BigUInt(rlcIterator it, rlcIterator endIt) : DigitVector({it, endIt}) {
+        BigUInt(rlcIterator it, rlcIterator endIt) : BigUIntBase({it, endIt}) {
             assert(isWellFormed());
         }
 
