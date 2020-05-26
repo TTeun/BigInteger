@@ -52,10 +52,12 @@ namespace big {
         rlcIterator rlcEnd() const { return m_digits.cend(); }
 
         /***************** Vector functions *****************/
-        void        reserve(size_t size) { m_digits.reserve(size); }
-        void        resizeToFit() { resizeToFitVector(m_digits); }
-        void        resize(size_t size) { m_digits.resize(size); }
-        static void resizeToFitVector(std::vector<size_t> &digits);
+        void                reserve(size_t size) { m_digits.reserve(size); }
+        void                resizeToFit() { resizeToFitVector(m_digits); }
+        void                resize(size_t size) { m_digits.resize(size); }
+        static void         resizeToFitVector(std::vector<size_t> &digits);
+        std::vector<size_t> shiftedCopy(size_t shiftAmount)  const;
+
 
         /***************** Data members *****************/
         std::vector<size_t> m_digits;

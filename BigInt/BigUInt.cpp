@@ -193,7 +193,17 @@ namespace big {
         return copy *= rhs;
     }
 
-    BigUInt BigUInt::operator*(const BigUInt &rhs) const { return multiply(*this, rhs); }
+    BigUInt BigUInt::operator*(const BigUInt &rhs) const {
+        if (*this < rhs) {
+            return multiply(*this, rhs);
+        } else {
+            return multiply(rhs, *this);
+        }
+    }
+
+    std::pair<BigUInt, BigUInt> BigUInt::squareRootRemainder() const {
+        return recursiveSquareRoot(BigUInt(shiftedCopy((-digitCount()) % 4), true));
+    }
 
     /** Division **/
     BigUInt &BigUInt::operator/=(size_t divisor) {
@@ -439,12 +449,6 @@ namespace big {
         resizeToFit();
     }
 
-    void BigUInt::square() {
-        const auto copy = *this;
-        *this *= copy;
-        bubble(0);
-    }
-
     void BigUInt::divideByLessThanBase(size_t factor) {
         assert(factor < s_base);
 
@@ -456,6 +460,47 @@ namespace big {
             *thisIt /= factor;
         }
         resizeToFit();
+    }
+
+    void BigUInt::square() {
+        const auto copy = *this;
+        *this *= copy;
+        bubble(0);
+    }
+
+    void BigUInt::append(const std::vector<size_t> &highDigits) {
+        m_digits.resize(digitCount() + highDigits.size());
+        std::copy(highDigits.cbegin(), highDigits.cend(), m_digits.begin() + digitCount() - highDigits.size());
+        assert(isWellFormed());
+    }
+
+    std::tuple<BigUInt, BigUInt, BigUInt, BigUInt> BigUInt::splitFour(rlcIterator begin, rlcIterator end, size_t i) {
+        assert(3ul * i < static_cast<size_t>(end - begin));
+        return {BigUInt({begin, begin + i}, false),
+                BigUInt({begin + i, begin + 2ul * i}, false),
+                BigUInt({begin + 2ul * i, begin + 3ul * i}, false),
+                BigUInt({begin + 3ul * i, end}, false)};
+    }
+
+    std::tuple<BigUInt, BigUInt, BigUInt> BigUInt::splitThree(rlcIterator begin, rlcIterator end, size_t i) {
+        assert(2ul * i < static_cast<size_t>(end - begin));
+        return {BigUInt({begin, begin + i}, false),
+                BigUInt({begin + i, begin + 2ul * i}, false),
+                BigUInt({begin + 2ul * i, end}, false)};
+    }
+
+    std::pair<BigUInt, BigUInt> BigUInt::recursiveSquareRoot(const BigUInt &val) {
+        //        assert(val.digitCount() % 4ul == 0ul);
+        //        const size_t  i = val.digitCount() / 4;
+        //        const BigUInt a0({val.rlcBegin(), val.rlcBegin() + i}, false);
+        //        BigUInt       a1({val.rlcBegin() + 1ul * i, val.rlcBegin() + 2ul * i}, false);
+        //        const BigUInt a32({val.rlcBegin() + 2ul * i, val.rlcEnd()}, false);
+        //
+        //        std::pair<BigUInt, BigUInt> p = a32.squareRootRemainder();
+        //        a1.append(p.second.m_digits);
+        //        BigUInt quot = longDivision(a1, 2ul * p.first);
+        //        BigUInt u =
+        //        quot.append(p.first.m_digits);
     }
 
     /***************** Static helpers *****************/
@@ -782,17 +827,13 @@ namespace big {
         assert((largeEnd - largeIt) >= (smallEnd - smallIt));
         const size_t i = (smallEnd - smallIt) / 3ul;
 
-        const BigInt m0{BigUInt({smallIt, smallIt + i}, false)};
-        const BigInt m1{BigUInt({smallIt + i, smallIt + 2ul * i}, false)};
-        const BigInt m2{BigUInt({smallIt + 2ul * i, smallEnd}, false)};
-
-        const BigInt n0{BigUInt({largeIt, largeIt + i}, false)};
-        const BigInt n1{BigUInt({largeIt + i, largeIt + 2ul * i}, false)};
-        const BigInt n2{BigUInt({largeIt + 2ul * i, largeEnd}, false)};
+        const auto [m0, m1, m2] = static_cast<std::tuple<BigInt, BigInt, BigInt>>(splitThree(smallIt, smallEnd, i));
+        const auto [n0, n1, n2] = static_cast<std::tuple<BigInt, BigInt, BigInt>>(splitThree(largeIt, largeEnd, i));
 
         const BigInt p_aux      = m0 + m2;
         const BigInt p_minusOne = p_aux - m1;
         const BigInt p_minusTwo = 2ul * (p_minusOne + m2) - m0;
+
         const BigInt q_aux      = n0 + n2;
         const BigInt q_minusOne = q_aux - n1;
         const BigInt q_minusTwo = 2ul * (q_minusOne + n2) - n0;
@@ -830,20 +871,14 @@ namespace big {
         assert((largeEnd - largeIt) >= (smallEnd - smallIt));
         const size_t i = (smallEnd - smallIt) / 4ul;
 
-        const BigInt m0{BigUInt({smallIt, smallIt + i}, false)};
-        const BigInt m1{BigUInt({smallIt + i, smallIt + 2ul * i}, false)};
-        const BigInt m2{BigUInt({smallIt + 2ul * i, smallIt + 3ul * i}, false)};
-        const BigInt m3{BigUInt({smallIt + 3ul * i, smallEnd}, false)};
+        const auto [m0, m1, m2, m3] = static_cast<std::tuple<BigInt, BigInt, BigInt, BigInt>>(splitFour(smallIt, smallEnd, i));
+        auto [n0, n1, n2, n3] =
+            static_cast<std::tuple<BigInt, const BigInt, const BigInt, BigInt>>(splitFour(largeIt, largeEnd, i));
 
-        BigInt       n0{BigUInt({largeIt, largeIt + i}, false)};
-        const BigInt n1{BigUInt({largeIt + i, largeIt + 2ul * i}, false)};
-        const BigInt n2{BigUInt({largeIt + 2ul * i, largeIt + 3ul * i}, false)};
-        BigInt       n3{BigUInt({largeIt + 3ul * i, largeEnd}, false)};
-
-        big::BigInt n02 = n0 + n2;
-        big::BigInt n13 = n1 + n3;
-        big::BigInt m02 = m0 + m2;
-        big::BigInt m13 = m1 + m3;
+        BigInt n02 = n0 + n2;
+        BigInt n13 = n1 + n3;
+        BigInt m02 = m0 + m2;
+        BigInt m13 = m1 + m3;
 
         const big::BigInt r_one      = (n02 + n13) * (m02 + m13);
         const big::BigInt r_minusOne = (n02 - n13) * (m02 - m13);
@@ -944,6 +979,7 @@ namespace big {
         if (factor > 1) {
             dividend *= factor;
             return longDivisionAfterAdjustingDivisor(dividend, factor * divisor);
+            dividend /= factor;
         } else {
             return longDivisionAfterAdjustingDivisor(dividend, divisor);
         }

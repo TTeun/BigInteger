@@ -11,9 +11,13 @@ namespace big {
     }
 
     bool BigUIntBase::isWellFormed() const {
-        if (not isCorrectlySized()) { return false; }
+        if (not isCorrectlySized()) {
+            return false;
+        }
         for (const auto &it : m_digits) {
-            if (it >= s_base) { return false; }
+            if (it >= s_base) {
+                return false;
+            }
         }
         return true;
     }
@@ -25,6 +29,15 @@ namespace big {
 
         digits.resize(static_cast<unsigned long>(std::distance(it, digits.rend())));
 
-        if (digits.empty()) { digits = {0ul}; }
+        if (digits.empty()) {
+            digits = {0ul};
+        }
     }
+
+    std::vector<size_t> BigUIntBase::shiftedCopy(size_t shiftAmount) const {
+        std::vector<size_t> result(digitCount() + shiftAmount);
+        std::copy(m_digits.begin(), m_digits.end(), result.begin() + shiftAmount);
+        return result;
+    }
+
 } // namespace big

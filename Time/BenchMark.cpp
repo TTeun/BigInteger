@@ -74,7 +74,7 @@ double BenchMark::divide(size_t powerOfTen, size_t numberOfRepetitions) {
     double bigTime = 0.0;
     for (size_t i = 0; i != numberOfRepetitions; ++i) {
         const BigUInt a = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        BigUInt       b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
+        BigUInt       b = BigUInt::createRandomFromDecimalDigits(powerOfTen / 2ul);
         mpz_t         n1;
         mpz_init(n1);
         mpz_set_str(n1, a.toString().c_str(), 10);

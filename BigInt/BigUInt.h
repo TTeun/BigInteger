@@ -14,6 +14,8 @@ namespace big {
         static const size_t s_toomCook3LowerLimit = 800ul;
         static const size_t s_toomCook4LowerLimit = 2000ul;
 
+        static BigUInt longDivision(BigUInt &dividend, const BigUInt &divisor);
+
     public:
         /***************** Constructors *****************/
         BigUInt() { init(0); }
@@ -43,10 +45,11 @@ namespace big {
         BigUInt  operator-(const BigUInt &rhs) const;
 
         /** Multiplication **/
-        BigUInt &operator*=(size_t rhs);
-        BigUInt &operator*=(const BigUInt &rhs);
-        BigUInt  operator*(size_t rhs) const;
-        BigUInt  operator*(const BigUInt &rhs) const;
+        BigUInt &                   operator*=(size_t rhs);
+        BigUInt &                   operator*=(const BigUInt &rhs);
+        BigUInt                     operator*(size_t rhs) const;
+        BigUInt                     operator*(const BigUInt &rhs) const;
+        std::pair<BigUInt, BigUInt> squareRootRemainder() const;
 
         /** Division **/
         BigUInt &operator/=(size_t divisor);
@@ -85,10 +88,14 @@ namespace big {
 
     private:
         /***************** Internal *****************/
-        void init(size_t val);
-        void bubble(size_t startIndex = 0ul);
-        void square();
-        void divideByLessThanBase(size_t factor);
+        void                                                  init(size_t val);
+        void                                                  bubble(size_t startIndex = 0ul);
+        void                                                  divideByLessThanBase(size_t factor);
+        void                                                  square();
+        void                                                  append(const std::vector<size_t> &highDigits);
+        static std::tuple<BigUInt, BigUInt, BigUInt, BigUInt> splitFour(rlcIterator begin, rlcIterator end, size_t i);
+        static std::tuple<BigUInt, BigUInt, BigUInt>          splitThree(rlcIterator begin, rlcIterator end, size_t i);
+        static std::pair<BigUInt, BigUInt>                    recursiveSquareRoot(const BigUInt &val);
 
         /***************** Static helpers *****************/
         /** Addition **/
@@ -109,48 +116,48 @@ namespace big {
                                                           const rlIterator resultEnd,
                                                           const size_t     least,
                                                           const size_t     most);
-        static void karatsubaMultiplyViaIterators(rlIterator        resultIt,
+        static void    karatsubaMultiplyViaIterators(rlIterator        resultIt,
+                                                     const rlIterator  resultEnd,
+                                                     rlcIterator       smallIt,
+                                                     const rlcIterator smallEnd,
+                                                     rlcIterator       largeIt,
+                                                     const rlcIterator largeEnd);
+        static void    splitOneMultiplicationViaIterators(rlIterator        resultIt,
+                                                          const rlIterator  resultEnd,
+                                                          rlcIterator       smallIt,
+                                                          const rlcIterator smallEnd,
+                                                          rlcIterator       largeIt,
+                                                          const rlcIterator largeEnd);
+        static void    multiplyViaIterators(rlIterator        resultIt,
+                                            const rlIterator  resultEnd,
+                                            rlcIterator       smallIt,
+                                            const rlcIterator smallEnd,
+                                            rlcIterator       largeIt,
+                                            const rlcIterator largeEnd);
+        static void    multiplySortedViaIterators(rlIterator        resultIt,
                                                   const rlIterator  resultEnd,
                                                   rlcIterator       smallIt,
                                                   const rlcIterator smallEnd,
                                                   rlcIterator       largeIt,
                                                   const rlcIterator largeEnd);
-        static void splitOneMultiplicationViaIterators(rlIterator        resultIt,
-                                                       const rlIterator  resultEnd,
-                                                       rlcIterator       smallIt,
-                                                       const rlcIterator smallEnd,
-                                                       rlcIterator       largeIt,
-                                                       const rlcIterator largeEnd);
-        static void multiplyViaIterators(rlIterator        resultIt,
-                                         const rlIterator  resultEnd,
-                                         rlcIterator       smallIt,
-                                         const rlcIterator smallEnd,
-                                         rlcIterator       largeIt,
-                                         const rlcIterator largeEnd);
-        static void multiplySortedViaIterators(rlIterator        resultIt,
-                                               const rlIterator  resultEnd,
-                                               rlcIterator       smallIt,
-                                               const rlcIterator smallEnd,
-                                               rlcIterator       largeIt,
-                                               const rlcIterator largeEnd);
-        static void toomCook_3(rlIterator  resultIt,
-                               rlIterator  resultEnd,
-                               rlcIterator smallIt,
-                               rlcIterator smallEnd,
-                               rlcIterator largeIt,
-                               rlcIterator largeEnd);
-        static void toomCook_4(rlIterator  resultIt,
-                               rlIterator  resultEnd,
-                               rlcIterator smallIt,
-                               rlcIterator smallEnd,
-                               rlcIterator largeIt,
-                               rlcIterator largeEnd);
-        static void schoolMultiply(rlIterator  resultIt,
-                                   rlIterator  resultEnd,
-                                   rlcIterator smallIt,
-                                   rlcIterator smallEnd,
-                                   rlcIterator largeIt,
-                                   rlcIterator largeEnd);
+        static void    toomCook_3(rlIterator  resultIt,
+                                  rlIterator  resultEnd,
+                                  rlcIterator smallIt,
+                                  rlcIterator smallEnd,
+                                  rlcIterator largeIt,
+                                  rlcIterator largeEnd);
+        static void    toomCook_4(rlIterator  resultIt,
+                                  rlIterator  resultEnd,
+                                  rlcIterator smallIt,
+                                  rlcIterator smallEnd,
+                                  rlcIterator largeIt,
+                                  rlcIterator largeEnd);
+        static void    schoolMultiply(rlIterator  resultIt,
+                                      rlIterator  resultEnd,
+                                      rlcIterator smallIt,
+                                      rlcIterator smallEnd,
+                                      rlcIterator largeIt,
+                                      rlcIterator largeEnd);
 
         /** Division **/
         static size_t  divisionSubRoutine(lrcIterator    leftToRightConstIt,
@@ -158,7 +165,6 @@ namespace big {
                                           rlIterator     rightToLeftIt,
                                           rlIterator     rightToLeftEnd,
                                           const BigUInt &divisor);
-        static BigUInt longDivision(BigUInt &dividend, const BigUInt &divisor);
         static BigUInt longDivisionAfterAdjustingDivisor(BigUInt &dividend, const BigUInt &divisor);
 
         /** Comparison **/

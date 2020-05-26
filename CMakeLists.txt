@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(untitled2)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -pedantic -O3)
 
 add_library(big BigInt/BigUInt.cpp BigInt/BigUInt.h Time/timer.cpp Time/timer.h BigInt/BigUIntBase.cpp BigInt/BigUIntBase.h BigInt/BigInt.cpp BigInt/BigInt.h)
