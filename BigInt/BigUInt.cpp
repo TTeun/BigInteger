@@ -755,12 +755,18 @@ namespace big {
 
         if (largeSize < s_karatsubaLowerLimit) {
             schoolMultiply(resultIt, resultEnd, smallIt, smallEnd, largeIt, largeEnd);
-        } else if (smallSize >= s_toomCookLowerLimit) {
-            toomCook_3(resultIt, resultEnd, smallIt, smallEnd, largeIt, largeEnd);
-        } else if (smallSize >= s_karatsubaLowerLimit) {
-            karatsubaMultiplyViaIterators(resultIt, resultEnd, smallIt, smallEnd, largeIt, largeEnd);
         } else {
-            splitOneMultiplicationViaIterators(resultIt, resultEnd, smallIt, smallEnd, largeIt, largeEnd);
+            if (smallSize < s_karatsubaLowerLimit) {
+                splitOneMultiplicationViaIterators(resultIt, resultEnd, smallIt, smallEnd, largeIt, largeEnd);
+            } else {
+                if (2ul * smallSize <= largeSize) {
+                    splitOneMultiplicationViaIterators(resultIt, resultEnd, smallIt, smallEnd, largeIt, largeEnd);
+                } else if (smallSize >= s_toomCookLowerLimit) {
+                    toomCook_3(resultIt, resultEnd, smallIt, smallEnd, largeIt, largeEnd);
+                } else {
+                    karatsubaMultiplyViaIterators(resultIt, resultEnd, smallIt, smallEnd, largeIt, largeEnd);
+                }
+            }
         }
     }
 
