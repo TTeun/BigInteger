@@ -4,11 +4,20 @@ namespace big {
 
     BigInt::BigInt() : m_magnitude() {}
 
+    BigInt::BigInt(const size_t val) : m_magnitude(val) {}
+    BigInt::BigInt(const long long val) : m_magnitude(static_cast<size_t>(val)), m_isNegative(val < 0ll) {}
+
     BigInt::BigInt(BigUInt &&magnitude) : m_magnitude(std::move(magnitude)) {}
 
     BigInt &BigInt::operator=(size_t rhs) {
         m_magnitude  = rhs;
         m_isNegative = false;
+        return *this;
+    }
+
+    BigInt &BigInt::operator=(long long rhs) {
+        m_magnitude  = static_cast<size_t>(rhs);
+        m_isNegative = rhs < 0ll;
         return *this;
     }
 
@@ -77,12 +86,9 @@ namespace big {
         return *this += copy;
     }
 
-    BigInt &BigInt::operator+=(size_t rhs) {
-        // ToDo optimize
-        BigInt copy;
-        copy.m_magnitude = rhs;
-        return *this += copy;
-    }
+    BigInt &BigInt::operator+=(size_t rhs) { return *this += BigUInt(rhs); }
+
+    BigInt &BigInt::operator+=(long long rhs) { return *this += BigInt(rhs); }
 
     BigInt &BigInt::operator=(const BigUInt &rhs) {
         m_magnitude = rhs;
@@ -199,7 +205,7 @@ namespace big {
     BigInt operator+(size_t lhs, const BigInt &rhs) { return rhs + lhs; }
 
     BigInt operator-(size_t lhs, const BigInt &rhs) {
-        auto result = rhs - lhs;
+        auto result = rhs - BigInt(lhs);
         result.negate();
         return result;
     }
@@ -213,6 +219,22 @@ namespace big {
             return result;
         }
         return rhs * std::abs(lhs);
+    }
+
+    bool BigInt::operator<(const BigInt &rhs) const {
+        if (m_isNegative) {
+            return rhs.m_isNegative ? m_magnitude > rhs.m_magnitude : true;
+        } else {
+            return rhs.m_isNegative ? false : m_magnitude < rhs.m_magnitude;
+        }
+    }
+
+    bool BigInt::operator<=(const BigInt &rhs) const {
+        if (m_isNegative) {
+            return rhs.m_isNegative ? m_magnitude >= rhs.m_magnitude : true;
+        } else {
+            return rhs.m_isNegative ? false : m_magnitude <= rhs.m_magnitude;
+        }
     }
 
 } // namespace big

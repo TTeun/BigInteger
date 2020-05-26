@@ -649,7 +649,6 @@ namespace big {
         size_t previousVal = 0ul;
         size_t currentVal;
         size_t carry = 0ul;
-
         for (; resultIt != resultEnd; ++resultIt) {
             currentVal = *resultIt;
 
@@ -724,7 +723,7 @@ namespace big {
 
         BigUInt z0;
         z0.resize(splitIndex + n + 1ul);
-        multiplyViaIterators(z0.rlBegin(), z0.rlEnd(), largeIt, largeIt + splitIndex, smallIt, smallEnd);
+        multiplyViaIterators(z0.rlBegin(), z0.rlEnd(), smallIt, smallEnd, largeIt, largeIt + splitIndex);
         z0.resizeToFit();
         addViaIterators(resultIt, resultEnd, z0.rlcBegin(), z0.rlcEnd());
 
@@ -792,7 +791,6 @@ namespace big {
         const BigInt n1{BigUInt({largeIt + i, largeIt + 2ul * i}, false)};
         const BigInt n2{BigUInt({largeIt + 2ul * i, largeEnd}, false)};
 
-        // See Bodrato paper on Toom Cook
         const BigInt p_aux      = m0 + m2;
         const BigInt p_minusOne = p_aux - m1;
         const BigInt p_minusTwo = 2ul * (p_minusOne + m2) - m0;
@@ -843,10 +841,19 @@ namespace big {
         const BigInt n2{BigUInt({largeIt + 2ul * i, largeIt + 3ul * i}, false)};
         BigInt       n3{BigUInt({largeIt + 3ul * i, largeEnd}, false)};
 
-        const big::BigInt r_one      = (n0 + n1 + n2 + n3) * (m0 + m1 + m2 + m3);
-        const big::BigInt r_minusOne = (n0 - n1 + n2 - n3) * (m0 - m1 + m2 - m3);
-        const big::BigInt r_two      = (n0 + 2ul * n1 + 4ul * n2 + 8ul * n3) * (m0 + 2ul * m1 + 4ul * m2 + 8ul * m3);
-        const big::BigInt r_minusTwo = (n0 - 2ul * n1 + 4ul * n2 - 8ul * n3) * (m0 - 2ul * m1 + 4ul * m2 - 8ul * m3);
+        big::BigInt n02 = n0 + n2;
+        big::BigInt n13 = n1 + n3;
+        big::BigInt m02 = m0 + m2;
+        big::BigInt m13 = m1 + m3;
+
+        const big::BigInt r_one      = (n02 + n13) * (m02 + m13);
+        const big::BigInt r_minusOne = (n02 - n13) * (m02 - m13);
+        n02 += 3ul * n2;
+        n13 += n1 + 7ul * n3;
+        m02 += 3ul * m2;
+        m13 += m1 + 7ul * m3;
+        const big::BigInt r_two      = (n02 + n13) * (m02 + m13);
+        const big::BigInt r_minusTwo = (n02 - n13) * (m02 - m13);
         const big::BigInt r_three    = (n0 + 3ul * n1 + 9ul * n2 + 27ul * n3) * (m0 + 3ul * m1 + 9ul * m2 + 27ul * m3);
 
         n0 *= m0;
