@@ -14,8 +14,8 @@ double BenchMark::multiply(size_t powerOfTen, size_t numberOfRepetitions) {
     double bigTime = 0.0;
     for (size_t i = 0; i != numberOfRepetitions; ++i) {
         const BigUInt a = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        BigUInt b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        mpz_t n1;
+        BigUInt       b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
+        mpz_t         n1;
         mpz_init(n1);
         mpz_set_str(n1, a.toString().c_str(), 10);
         mpz_t n2;
@@ -44,8 +44,8 @@ double BenchMark::add(size_t powerOfTen, size_t numberOfRepetitions) {
     double bigTime = 0.0;
     for (size_t i = 0; i != numberOfRepetitions; ++i) {
         const BigUInt a = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        BigUInt b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        mpz_t n1;
+        BigUInt       b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
+        mpz_t         n1;
         mpz_init(n1);
         mpz_set_str(n1, a.toString().c_str(), 10);
         mpz_t n2;
@@ -74,8 +74,8 @@ double BenchMark::divide(size_t powerOfTen, size_t numberOfRepetitions) {
     double bigTime = 0.0;
     for (size_t i = 0; i != numberOfRepetitions; ++i) {
         const BigUInt a = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        BigUInt b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        mpz_t n1;
+        BigUInt       b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
+        mpz_t         n1;
         mpz_init(n1);
         mpz_set_str(n1, a.toString().c_str(), 10);
         mpz_t n2;
@@ -104,8 +104,8 @@ double BenchMark::modulo(size_t powerOfTen, size_t numberOfRepetitions) {
     double bigTime = 0.0;
     for (size_t i = 0; i != numberOfRepetitions; ++i) {
         const BigUInt a = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        BigUInt b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
-        mpz_t n1;
+        BigUInt       b = BigUInt::createRandomFromDecimalDigits(powerOfTen);
+        mpz_t         n1;
         mpz_init(n1);
         mpz_set_str(n1, a.toString().c_str(), 10);
         mpz_t n2;
@@ -136,15 +136,15 @@ void BenchMark::run(const std::vector<std::pair<size_t, size_t>> &digitCountAndR
     }
     std::cout << '\n';
 
-    std::cout << "Multiply:\t\t";
-    for (auto it : digitCountAndRepetitions) {
-        std::cout << std::setfill(' ') << std::setw(15) << multiply(it.first, it.second);
-    }
-    std::cout << '\n';
-
     std::cout << "Add:\t\t\t";
     for (auto it : digitCountAndRepetitions) {
         std::cout << std::setfill(' ') << std::setw(15) << add(it.first, it.second);
+    }
+    std::cout << '\n';
+
+    std::cout << "Multiply:\t\t";
+    for (auto it : digitCountAndRepetitions) {
+        std::cout << std::setfill(' ') << std::setw(15) << multiply(it.first, it.second);
     }
     std::cout << '\n';
 

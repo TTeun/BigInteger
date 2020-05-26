@@ -152,13 +152,13 @@ namespace big {
                 resize(digitCount() + 1ul);
                 multiplyBySingleDigitViaIterators(rlBegin(), rlEnd(), rhs);
                 resizeToFit();
-            } else if (rhs < s_base * (s_base + 1)) {
+            } else if (rhs < s_base * s_base) {
                 resize(digitCount() + 2ul);
                 multiplyByDoubleDigitsViaIterators(rlBegin(), rlEnd(), rhs % s_base, rhs / s_base);
                 resizeToFit();
             } else {
                 reserve(digitCount() + 3ul);
-                *this *= BigUInt(rhs);
+                *this *= BigUInt({rhs % s_base, (rhs / s_base) % s_base, rhs / (s_base * s_base)}, true);
             }
         }
         return *this;
@@ -484,21 +484,12 @@ namespace big {
             *resultIt = s0 % s_base;
             ++resultIt;
             ++rhsIt;
-            s0        = *resultIt + *rhsIt + (s0 > s_maxDigit);
-            *resultIt = s0 % s_base;
-            ++resultIt;
-            ++rhsIt;
-            s0        = *resultIt + *rhsIt + (s0 > s_maxDigit);
-            *resultIt = s0 % s_base;
-            ++resultIt;
-            ++rhsIt;
-            s0        = *resultIt + *rhsIt + (s0 > s_maxDigit);
-            *resultIt = s0 % s_base;
-            ++resultIt;
-            ++rhsIt;
-
+#define REPEAT_THREE(code) code code code
+            REPEAT_THREE(s0 = *resultIt + *rhsIt + (s0 > s_maxDigit); *resultIt = s0 % s_base; ++resultIt; ++rhsIt;)
+#undef REPEAT_THREE
             carry = s0 > s_maxDigit;
         }
+
         switch (rhsEnd - rhsIt) {
             case 0: break;
             case 1:
@@ -533,7 +524,6 @@ namespace big {
                 break;
             default: assert(false);
         }
-
         if (carry) {
             carryAdditionViaIterators(resultIt, resultEnd, 1ul);
         }
@@ -548,25 +538,16 @@ namespace big {
         assert(std::distance(resultIt, resultEnd) >= std::distance(rhsIt, rhsEnd) + 1l);
         size_t carry = 0ul;
         size_t s0;
-        for (; rhsEnd - rhsIt >= 3;) {
+        for (; rhsEnd - rhsIt >= 4;) {
             s0        = *resultIt + *rhsIt * multiplier + carry;
             *resultIt = s0 % s_base;
             ++resultIt;
             ++rhsIt;
-
-            s0        = *resultIt + *rhsIt * multiplier + (s0 / s_base);
-            *resultIt = s0 % s_base;
-            ++resultIt;
-            ++rhsIt;
-
-            s0        = *resultIt + *rhsIt * multiplier + (s0 / s_base);
-            *resultIt = s0 % s_base;
-            ++resultIt;
-            ++rhsIt;
-
+#define REPEAT_THREE(code) code code code
+            REPEAT_THREE(s0 = *resultIt + *rhsIt * multiplier + (s0 / s_base); *resultIt = s0 % s_base; ++resultIt; ++rhsIt;)
+#undef REPEAT_THREE
             carry = s0 / s_base;
         }
-
         switch (rhsEnd - rhsIt) {
             case 0: break;
             case 1:
@@ -576,24 +557,34 @@ namespace big {
                 ++rhsIt;
                 carry = s0 / s_base;
                 break;
-
             case 2:
                 s0        = *resultIt + *rhsIt * multiplier + carry;
                 *resultIt = s0 % s_base;
                 ++resultIt;
                 ++rhsIt;
-
                 s0        = *resultIt + *rhsIt * multiplier + (s0 / s_base);
                 *resultIt = s0 % s_base;
                 ++resultIt;
                 ++rhsIt;
-
                 carry = s0 / s_base;
                 break;
-
+            case 3:
+                s0        = *resultIt + *rhsIt * multiplier + carry;
+                *resultIt = s0 % s_base;
+                ++resultIt;
+                ++rhsIt;
+                s0        = *resultIt + *rhsIt * multiplier + (s0 / s_base);
+                *resultIt = s0 % s_base;
+                ++resultIt;
+                ++rhsIt;
+                s0        = *resultIt + *rhsIt * multiplier + (s0 / s_base);
+                *resultIt = s0 % s_base;
+                ++resultIt;
+                ++rhsIt;
+                carry = s0 / s_base;
+                break;
             default: assert(false);
         }
-
         if (carry > 0UL) {
             carryAdditionViaIterators(resultIt, resultEnd, carry);
         }
@@ -793,13 +784,13 @@ namespace big {
         assert((largeEnd - largeIt) >= (smallEnd - smallIt));
         const size_t i = (smallEnd - smallIt) / 3ul;
 
-        const BigInt m0{BigUInt(std::vector<size_t>{smallIt, smallIt + i}, false)};
-        const BigInt m1{BigUInt(std::vector<size_t>{smallIt + i, smallIt + 2ul * i}, false)};
-        const BigInt m2{BigUInt(std::vector<size_t>{smallIt + 2ul * i, smallEnd}, false)};
+        const BigInt m0{BigUInt({smallIt, smallIt + i}, false)};
+        const BigInt m1{BigUInt({smallIt + i, smallIt + 2ul * i}, false)};
+        const BigInt m2{BigUInt({smallIt + 2ul * i, smallEnd}, false)};
 
-        const BigInt n0{BigUInt(std::vector<size_t>{largeIt, largeIt + i}, false)};
-        const BigInt n1{BigUInt(std::vector<size_t>{largeIt + i, largeIt + 2ul * i}, false)};
-        const BigInt n2{BigUInt(std::vector<size_t>{largeIt + 2ul * i, largeEnd}, false)};
+        const BigInt n0{BigUInt({largeIt, largeIt + i}, false)};
+        const BigInt n1{BigUInt({largeIt + i, largeIt + 2ul * i}, false)};
+        const BigInt n2{BigUInt({largeIt + 2ul * i, largeEnd}, false)};
 
         // See Bodrato paper on Toom Cook
         const BigInt p_aux      = m0 + m2;
@@ -842,40 +833,39 @@ namespace big {
         assert((largeEnd - largeIt) >= (smallEnd - smallIt));
         const size_t i = (smallEnd - smallIt) / 4ul;
 
-        const BigInt m0{BigUInt(std::vector<size_t>{smallIt, smallIt + i}, false)};
-        const BigInt m1{BigUInt(std::vector<size_t>{smallIt + i, smallIt + 2ul * i}, false)};
-        const BigInt m2{BigUInt(std::vector<size_t>{smallIt + 2ul * i, smallIt + 3ul * i}, false)};
-        const BigInt m3{BigUInt(std::vector<size_t>{smallIt + 3ul * i, smallEnd}, false)};
+        const BigInt m0{BigUInt({smallIt, smallIt + i}, false)};
+        const BigInt m1{BigUInt({smallIt + i, smallIt + 2ul * i}, false)};
+        const BigInt m2{BigUInt({smallIt + 2ul * i, smallIt + 3ul * i}, false)};
+        const BigInt m3{BigUInt({smallIt + 3ul * i, smallEnd}, false)};
 
-        const BigInt n0{BigUInt(std::vector<size_t>{largeIt, largeIt + i}, false)};
-        const BigInt n1{BigUInt(std::vector<size_t>{largeIt + i, largeIt + 2ul * i}, false)};
-        const BigInt n2{BigUInt(std::vector<size_t>{largeIt + 2ul * i, largeIt + 3ul * i}, false)};
-        const BigInt n3{BigUInt(std::vector<size_t>{largeIt + 3ul * i, largeEnd}, false)};
+        BigInt       n0{BigUInt({largeIt, largeIt + i}, false)};
+        const BigInt n1{BigUInt({largeIt + i, largeIt + 2ul * i}, false)};
+        const BigInt n2{BigUInt({largeIt + 2ul * i, largeIt + 3ul * i}, false)};
+        BigInt       n3{BigUInt({largeIt + 3ul * i, largeEnd}, false)};
 
-        const big::BigInt r_zero     = n0 * m0;
-        const big::BigInt r_infinity = n3 * m3;
         const big::BigInt r_one      = (n0 + n1 + n2 + n3) * (m0 + m1 + m2 + m3);
         const big::BigInt r_minusOne = (n0 - n1 + n2 - n3) * (m0 - m1 + m2 - m3);
         const big::BigInt r_two      = (n0 + 2ul * n1 + 4ul * n2 + 8ul * n3) * (m0 + 2ul * m1 + 4ul * m2 + 8ul * m3);
         const big::BigInt r_minusTwo = (n0 - 2ul * n1 + 4ul * n2 - 8ul * n3) * (m0 - 2ul * m1 + 4ul * m2 - 8ul * m3);
         const big::BigInt r_three    = (n0 + 3ul * n1 + 9ul * n2 + 27ul * n3) * (m0 + 3ul * m1 + 9ul * m2 + 27ul * m3);
 
-        BigInt a1 = (-20ll * r_zero - 720ll * r_infinity + 60ll * r_one - 30ll * r_minusOne - 15ll * r_two + 3ll * r_minusTwo +
-                     2ll * r_three) /
-                    60ul;
-        BigInt a2 = (-30ll * r_zero + 96ll * r_infinity + 16ll * r_one + 16ll * r_minusOne - r_two - r_minusTwo) / 24ul;
-        BigInt a3 = (10ll * r_zero + 360ll * r_infinity - 14ll * r_one - r_minusOne + 7ll * r_two - r_minusTwo - r_three) / 24ul;
-        BigInt a4 = (6ll * r_zero - 120ll * r_infinity - 4ll * r_one - 4ll * r_minusOne + r_two + r_minusTwo) / 24ul;
-        BigInt a5 =
-            (-10ll * r_zero - 360ll * r_infinity + 10ll * r_one + 5ll * r_minusOne - 5ll * r_two - r_minusTwo + r_three) / 120ul;
+        n0 *= m0;
+        n3 *= m3;
 
-        addViaIterators(resultIt, resultEnd, r_zero.magnitude().rlcBegin(), r_zero.magnitude().rlcEnd());
+        BigInt a1 =
+            (-20ll * n0 - 720ll * n3 + 60ll * r_one - 30ll * r_minusOne - 15ll * r_two + 3ll * r_minusTwo + 2ll * r_three) / 60ul;
+        BigInt a2 = (-30ll * n0 + 96ll * n3 + 16ll * r_one + 16ll * r_minusOne - r_two - r_minusTwo) / 24ul;
+        BigInt a3 = (10ll * n0 + 360ll * n3 - 14ll * r_one - r_minusOne + 7ll * r_two - r_minusTwo - r_three) / 24ul;
+        BigInt a4 = (6ll * n0 - 120ll * n3 - 4ll * r_one - 4ll * r_minusOne + r_two + r_minusTwo) / 24ul;
+        BigInt a5 = (-10ll * n0 - 360ll * n3 + 10ll * r_one + 5ll * r_minusOne - 5ll * r_two - r_minusTwo + r_three) / 120ul;
+
+        addViaIterators(resultIt, resultEnd, n0.magnitude().rlcBegin(), n0.magnitude().rlcEnd());
         addViaIterators(resultIt + i, resultEnd, a1.magnitude().rlcBegin(), a1.magnitude().rlcEnd());
         addViaIterators(resultIt + 2ul * i, resultEnd, a2.magnitude().rlcBegin(), a2.magnitude().rlcEnd());
         addViaIterators(resultIt + 3ul * i, resultEnd, a3.magnitude().rlcBegin(), a3.magnitude().rlcEnd());
         addViaIterators(resultIt + 4ul * i, resultEnd, a4.magnitude().rlcBegin(), a4.magnitude().rlcEnd());
         addViaIterators(resultIt + 5ul * i, resultEnd, a5.magnitude().rlcBegin(), a5.magnitude().rlcEnd());
-        addViaIterators(resultIt + 6ul * i, resultEnd, r_infinity.magnitude().rlcBegin(), r_infinity.magnitude().rlcEnd());
+        addViaIterators(resultIt + 6ul * i, resultEnd, n3.magnitude().rlcBegin(), n3.magnitude().rlcEnd());
     }
 
     void BigUInt::schoolMultiply(rlIterator  resultIt,
@@ -885,7 +875,6 @@ namespace big {
                                  rlcIterator largeIt,
                                  rlcIterator largeEnd) {
         assert((largeEnd - largeIt) >= (smallEnd - smallIt));
-
         for (size_t i = 0; smallIt < smallEnd; ++i) {
             addMultipleViaIterators(resultIt + i, resultEnd, largeIt, largeEnd, *smallIt);
             ++smallIt;

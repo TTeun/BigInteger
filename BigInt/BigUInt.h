@@ -10,7 +10,7 @@ namespace big {
     class BigUInt : public BigUIntBase {
 
     public:
-        static const size_t s_karatsubaLowerLimit = 160ul;
+        static const size_t s_karatsubaLowerLimit = 40ul;
         static const size_t s_toomCook3LowerLimit = 800ul;
         static const size_t s_toomCook4LowerLimit = 2000ul;
 
@@ -90,7 +90,6 @@ namespace big {
         void square();
         void divideByLessThanBase(size_t factor);
 
-    public:
         /***************** Static helpers *****************/
         /** Addition **/
         static void carryAdditionViaIterators(rlIterator thisIt, const rlIterator thisEnd, size_t carry);
@@ -110,7 +109,6 @@ namespace big {
                                                           const rlIterator resultEnd,
                                                           const size_t     least,
                                                           const size_t     most);
-
         static void karatsubaMultiplyViaIterators(rlIterator        resultIt,
                                                   const rlIterator  resultEnd,
                                                   rlcIterator       smallIt,
