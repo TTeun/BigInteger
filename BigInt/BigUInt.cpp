@@ -361,11 +361,10 @@ namespace big {
         std::mt19937                          gen(rd());
         std::uniform_int_distribution<size_t> dis(0, s_maxDigit);
 
-        BigUInt result(0ul);
-        result.m_digits[0] = dis(gen);
-        for (size_t i = 1; i != numberOfDigits; ++i) {
-            result.shift(1);
-            result.m_digits[0] = dis(gen);
+        BigUInt result;
+        result.resize(numberOfDigits);
+        for (size_t i = 0; i != numberOfDigits; ++i) {
+            result.m_digits[i] = dis(gen);
         }
         result.resizeToFit();
         return result;

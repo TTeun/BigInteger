@@ -55,7 +55,6 @@ namespace big {
         void        reserve(size_t size) { m_digits.reserve(size); }
         void        resizeToFit() { resizeToFitVector(m_digits); }
         void        resize(size_t size) { m_digits.resize(size); }
-        void        shift(size_t shiftAmount) { m_digits.insert(rlBegin(), shiftAmount, 0); }
         static void resizeToFitVector(std::vector<size_t> &digits);
 
         /***************** Data members *****************/
