@@ -8,7 +8,7 @@ using namespace big;
 
 TEST_CASE("BigUInt tests", "[BigUIntTests]") {
 
-    SECTION("Some additions and subtractions") {
+    SECTION("Some operations") {
         BigUInt b(BigUIntBase::s_base);
         BigUInt c(BigUIntBase::s_base - 1);
         c += 1ul;

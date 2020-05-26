@@ -111,7 +111,7 @@ namespace big {
         /***************** Static helpers *****************/
         /** Addition **/
         static void carryAdditionViaIterators(rlIterator thisIt, const rlIterator thisEnd, size_t carry);
-        static void addViaIterators(rlIterator thisIt, const rlIterator thisEnd, rlcIterator rhsIt, const rlcIterator rhsEnd);
+        static void addViaIterators(rlIterator resultIt, const rlIterator resultEnd, rlcIterator rhsIt, const rlcIterator rhsEnd);
         static void addMultipleViaIterators(rlIterator resultIt,
                                             const rlIterator resultEnd,
                                             rlcIterator rhsIt,
@@ -142,10 +142,10 @@ namespace big {
                                                        const rlcIterator largeEnd);
         static void multiplyViaIterators(rlIterator resultIt,
                                          const rlIterator resultEnd,
-                                         rlcIterator rhsIt,
-                                         const rlcIterator rhsEnd,
-                                         rlcIterator copyIt,
-                                         const rlcIterator copyEnd);
+                                         rlcIterator smallIt,
+                                         const rlcIterator smallEnd,
+                                         rlcIterator largeIt,
+                                         const rlcIterator largeEnd);
         static void multiplySortedViaIterators(rlIterator resultIt,
                                                const rlIterator resultEnd,
                                                rlcIterator smallIt,
