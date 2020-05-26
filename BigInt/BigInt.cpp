@@ -7,7 +7,7 @@ namespace big {
     BigInt::BigInt(BigUInt &&magnitude) : m_magnitude(std::move(magnitude)) {}
 
     BigInt &BigInt::operator=(size_t rhs) {
-        m_magnitude = rhs;
+        m_magnitude  = rhs;
         m_isNegative = false;
         return *this;
     }
@@ -21,7 +21,7 @@ namespace big {
     BigInt::BigInt(const std::string &val) {
         if (val.front() == '-') {
             m_isNegative = true;
-            m_magnitude = BigUInt(val.substr(1));
+            m_magnitude  = BigUInt(val.substr(1));
         } else {
             m_magnitude = BigUInt(val);
         }
@@ -35,7 +35,7 @@ namespace big {
                 m_magnitude -= rhs.m_magnitude;
             } else {
                 m_isNegative = true;
-                m_magnitude = rhs.m_magnitude - m_magnitude;
+                m_magnitude  = rhs.m_magnitude - m_magnitude;
             }
         } else {
             assert(m_isNegative);
@@ -43,7 +43,7 @@ namespace big {
                 m_magnitude -= rhs.m_magnitude;
             } else {
                 m_isNegative = false;
-                m_magnitude = rhs.m_magnitude - m_magnitude;
+                m_magnitude  = rhs.m_magnitude - m_magnitude;
             }
         }
 
@@ -58,21 +58,21 @@ namespace big {
                 m_magnitude -= rhs;
             } else {
                 m_isNegative = false;
-                m_magnitude = rhs - m_magnitude;
+                m_magnitude  = rhs - m_magnitude;
             }
         }
         return *this;
     }
 
     BigInt &BigInt::operator-=(const BigInt &rhs) {
-        BigInt copy = rhs;
+        BigInt copy       = rhs;
         copy.m_isNegative = !rhs.m_isNegative;
         return *this += copy;
     }
 
     BigInt &BigInt::operator-=(const BigUInt &rhs) {
         BigInt copy;
-        copy.m_magnitude = rhs;
+        copy.m_magnitude  = rhs;
         copy.m_isNegative = true;
         return *this += copy;
     }
@@ -106,7 +106,7 @@ namespace big {
     }
 
     BigInt &BigInt::operator=(const BigInt &rhs) {
-        m_magnitude = rhs.m_magnitude;
+        m_magnitude  = rhs.m_magnitude;
         m_isNegative = rhs.m_isNegative;
         return *this;
     }
@@ -177,7 +177,7 @@ namespace big {
     }
 
     BigInt &BigInt::operator/=(const BigInt &divisor) {
-        m_magnitude = m_magnitude / divisor.m_magnitude;
+        m_magnitude  = m_magnitude / divisor.m_magnitude;
         m_isNegative = m_isNegative ^ divisor.m_isNegative;
         return *this;
     }
@@ -205,4 +205,14 @@ namespace big {
     }
 
     BigInt operator*(size_t lhs, const BigInt &rhs) { return rhs * lhs; }
+
+    BigInt operator*(long long lhs, const BigInt &rhs) {
+        if (lhs < 0) {
+            BigInt result = rhs * std::abs(lhs);
+            result.negate();
+            return result;
+        }
+        return rhs * std::abs(lhs);
+    }
+
 } // namespace big

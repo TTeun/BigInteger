@@ -58,6 +58,7 @@ namespace big {
         friend BigInt operator+(size_t lhs, const BigInt &rhs);
         friend BigInt operator-(size_t lhs, const BigInt &rhs);
         friend BigInt operator*(size_t lhs, const BigInt &rhs);
+        friend BigInt operator*(long long lhs, const BigInt &rhs);
 
         /***************** Output *****************/
         std::string toString() const {

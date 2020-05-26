@@ -5,19 +5,18 @@
 #include <ostream>
 #include <vector>
 
-typedef std::vector<size_t>::reverse_iterator lrIterator;
+typedef std::vector<size_t>::reverse_iterator       lrIterator;
 typedef std::vector<size_t>::const_reverse_iterator lrcIterator;
-typedef std::vector<size_t>::iterator rlIterator;
-typedef std::vector<size_t>::const_iterator rlcIterator;
+typedef std::vector<size_t>::iterator               rlIterator;
+typedef std::vector<size_t>::const_iterator         rlcIterator;
 
 namespace big {
 
     class BigUIntBase {
 
     public:
-
-        static const size_t s_base = 1000000000ul;
-        static const size_t s_maxDigit = 999999999ul;
+        static const size_t s_base          = 1000000000ul;
+        static const size_t s_maxDigit      = 999999999ul;
         static const size_t s_digitsPerLimb = 9ul;
 
         friend class BigInt;
@@ -40,23 +39,23 @@ namespace big {
         size_t digitCount() const { return m_digits.size(); }
 
         size_t mostSignificantDigit() const { return m_digits.back(); }
-        bool isCorrectlySized() const;
+        bool   isCorrectlySized() const;
 
         /***************** Iterators *****************/
-        lrIterator lrBegin() { return m_digits.rbegin(); }
-        lrIterator lrEnd() { return m_digits.rend(); }
-        rlIterator rlBegin() { return m_digits.begin(); }
-        rlIterator rlEnd() { return m_digits.end(); }
+        lrIterator  lrBegin() { return m_digits.rbegin(); }
+        lrIterator  lrEnd() { return m_digits.rend(); }
+        rlIterator  rlBegin() { return m_digits.begin(); }
+        rlIterator  rlEnd() { return m_digits.end(); }
         lrcIterator lrcBegin() const { return m_digits.crbegin(); }
         lrcIterator lrcEnd() const { return m_digits.crend(); }
         rlcIterator rlcBegin() const { return m_digits.cbegin(); }
         rlcIterator rlcEnd() const { return m_digits.cend(); }
 
         /***************** Vector functions *****************/
-        void reserve(size_t size) { m_digits.reserve(size); }
-        void resizeToFit() { resizeToFitVector(m_digits); }
-        void resize(size_t size) { m_digits.resize(size); }
-        void shift(size_t shiftAmount) { m_digits.insert(rlBegin(), shiftAmount, 0); }
+        void        reserve(size_t size) { m_digits.reserve(size); }
+        void        resizeToFit() { resizeToFitVector(m_digits); }
+        void        resize(size_t size) { m_digits.resize(size); }
+        void        shift(size_t shiftAmount) { m_digits.insert(rlBegin(), shiftAmount, 0); }
         static void resizeToFitVector(std::vector<size_t> &digits);
 
         /***************** Data members *****************/
